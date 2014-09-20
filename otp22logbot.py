@@ -133,7 +133,7 @@ sock = socket.socket()
 sock.connect((app_args.server, app_args.port))
 
 # @todo accept a server password
-#if app_args.password != False:
+# if app_args.password != False:
 #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
 socksend(sock, 'NICK {0}'.format(app_args.nick))
 socksend(sock, 'USER {app_args.user} {app_args.server} default :{app_args.real}'
