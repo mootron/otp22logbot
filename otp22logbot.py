@@ -214,7 +214,7 @@ while not app_data['kill']:
             socksend(sock, 'PRIVMSG '+channel+' :'+last_message)
         elif command == '.user':
             if parameter in users:
-                this_time = datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
+                this_time = datetime.fromtimestamp(users[requester]['seen']).strftime(app_data['timeformat_extended'])
                 user_lastmsg = datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
                 line = 'User '+parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
             else:
