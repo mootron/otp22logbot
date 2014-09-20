@@ -1,14 +1,15 @@
 #!/usr/bin/python3
+"""OTP22 Log Bot
+This bot logs an IRC channel to a file. It also provides a small
+number of additional features related to users and their content.
 
-#. @project OTP22 Log Bot
-#. This bot logs an IRC channel to a file. It also provides a small
-#. number of additional features related to users and their content.
-#. @file otp22logbot.py
-#. This is the primary application driver file.
-#. @author L0j1k
-#. @contact L0j1k@L0j1k.com
-#. @license BSD3
-#. @version 0.0.4a
+@file otp22logbot.py
+This is the primary application driver file.
+@author L0j1k
+@contact L0j1k@L0j1k.com
+@license BSD3
+@version 0.0.4a
+"""
 
 import argparse
 import datetime
