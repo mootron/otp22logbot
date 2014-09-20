@@ -225,7 +225,7 @@ while not app_data['kill']:
             socksend(sock, 'PRIVMSG {0} :Flushing and rotating logfiles...'
                            .format(channel))
         elif command == '.help':
-            if parameter == False:
+            if not parameter:
                 line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
             elif parameter == 'flush':
                 line = ".flush: flush and rotate logfiles"
