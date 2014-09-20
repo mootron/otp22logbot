@@ -141,7 +141,6 @@ users = {}
 while app_data['kill'] == False:
   timestamp = time.time()
   sock_buffer = sock.recv(1024).decode('utf-8')
-  sendbuffer = ""
   ## @debug1
   sysprint(sock_buffer)
   if (sock_buffer.find('PING') != -1):
