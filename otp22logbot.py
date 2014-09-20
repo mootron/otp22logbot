@@ -196,30 +196,30 @@ while not app_data['kill']:
             socksend(sock, 'PRIVMSG '+channel+' :Flushing and rotating logfiles...')
         elif command == '.help':
             if parameter == False:
-                send_message = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
+                line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
             elif parameter == 'flush':
-                send_message = ".flush: flush and rotate logfiles"
+                line = ".flush: flush and rotate logfiles"
             elif parameter == 'help':
-                send_message = ".help <command>: lists help for a specific command"
+                line = ".help <command>: lists help for a specific command"
             elif parameter == 'kill':
-                send_message = ".kill: attempts to kill this bot (good luck)"
+                line = ".kill: attempts to kill this bot (good luck)"
             elif parameter == 'last':
-                send_message = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
+                line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
             elif parameter == 'user':
-                send_message = ".user [user]: displays information about user. if unspecified, defaults to command requester"
+                line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
             elif parameter == 'version':
-                send_message = ".version: displays version information"
-            socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
+                line = ".version: displays version information"
+            socksend(sock, 'PRIVMSG '+channel+' :'+line)
         elif command == '.last':
             socksend(sock, 'PRIVMSG '+channel+' :'+last_message)
         elif command == '.user':
             if parameter in users:
                 this_time = datetime.datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
                 user_lastmsg = datetime.datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
-                send_message = 'User '+parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
+                line = 'User '+parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
             else:
-                send_message = 'Information unavailable for user '+parameter
-            socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
+                line = 'Information unavailable for user '+parameter
+            socksend(sock, 'PRIVMSG '+channel+' :'+line)
         elif command == '.version':
             socksend(sock, 'PRIVMSG '+channel+' :'+app_data['version']+app_data['phase']+' by '+app_data['overlord'])
         elif channel != app_args.channel:
@@ -231,8 +231,8 @@ while not app_data['kill']:
                     socksend(sock, 'QUIT :killed by '+requester)
         elif command == '\x01VERSION\x01':
             # @task respond to CTCP VERSION
-            send_message = '\x01VERSION OTP22LogBot v'+app_data['version']+app_data['phase']+'\x01'
-            socksend(sock, 'NOTICE '+requester+' :'+send_message)
+            line = '\x01VERSION OTP22LogBot v'+app_data['version']+app_data['phase']+'\x01'
+            socksend(sock, 'NOTICE '+requester+' :'+line)
 
 end_message = '[+] CONNECTION STOPPED ... dying at '+datetime.datetime.now().strftime(app_data['timeformat']+'\n')
 filesend(app_args.output, end_message)
