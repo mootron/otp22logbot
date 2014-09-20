@@ -14,7 +14,6 @@ import argparse
 from datetime import datetime
 import socket
 import sys
-import time
 
 
 def make_parser():
@@ -118,10 +117,11 @@ APP_DATA = {
 }
 
 def startup(app_args):
+    now = datetime.utcnow()
     sysprint('otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n'
              .format(app_data=APP_DATA))
     sysprint('[+] started at {time}\n'
-             .format(time=datetime.now().strftime(APP_DATA['timeformat'])))
+             .format(time=now.strftime(APP_DATA['timeformat'])))
     sysprint('[+] using configuration file: {config_path}\n'
              .format(config_path=app_args.init.name if app_args.init else None))
     sysprint('[+] using output logfile {app_args.output.name}\n'
@@ -173,7 +173,7 @@ def loop(sock, app_args):
     users = {}
 
     while not APP_DATA['kill']:
-        timestamp = time.time()
+        now = datetime.utcnow()
         buf = sock.recv(1024).decode('utf-8')
         # @debug1
         sysprint(buf)
@@ -202,7 +202,7 @@ def loop(sock, app_args):
             # @task handle regular messages to the channel
             last_message = message
             message = '<{0}> {1} ({2}): {3}'.format(
-                datetime.fromtimestamp(timestamp).strftime(APP_DATA['timeformat']),
+                now.strftime(APP_DATA['timeformat']),
                 requester,
                 channel,
                 message[2]
@@ -211,8 +211,8 @@ def loop(sock, app_args):
                 'altnicks': [],
                 'channel': channel,
                 'message': message[2],
-                'seen': timestamp,
-                'time': timestamp
+                'seen': now,
+                'time': now
             }
             filesend(app_args.output, message)
             if len(message_body) > 3:
@@ -252,8 +252,8 @@ def loop(sock, app_args):
                 socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, last_message))
             elif command == '.user':
                 if parameter in users:
-                    this_time = datetime.fromtimestamp(users[requester]['seen']).strftime(APP_DATA['timeformat_extended'])
-                    user_lastmsg = datetime.fromtimestamp(users[requester]['time']).strftime(APP_DATA['timeformat_extended'])
+                    this_time = users[requester]['seen'].strftime(APP_DATA['timeformat_extended'])
+                    user_lastmsg = users[requester]['time'].strftime(APP_DATA['timeformat_extended'])
                     line = ('User {0} (last seen {1}), (last message {2} -- {3})'
                             .format(parameter, this_time, user_lastmsg,
                                     users[requester]['message']))
@@ -283,8 +283,9 @@ def loop(sock, app_args):
 
 
 def shutdown(app_args):
+    now = datetime.utcnow()
     end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
-                   .format(datetime.now().strftime(APP_DATA['timeformat'])))
+                   .format(now.strftime(APP_DATA['timeformat'])))
     filesend(app_args.output, end_message)
     sysprint(end_message)
     app_args.output.close()
