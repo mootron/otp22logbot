@@ -12,6 +12,7 @@ This is the primary application driver file.
 """
 import argparse
 from datetime import datetime
+import textwrap
 import socket
 import sys
 
@@ -118,18 +119,20 @@ APP_DATA = {
 
 def startup(app_args):
     now = datetime.utcnow()
-    sysprint('otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n'
-             .format(app_data=APP_DATA))
-    sysprint('[+] started at {time}\n'
-             .format(time=now.strftime(APP_DATA['timeformat'])))
-    sysprint('[+] using configuration file: {config_path}\n'
-             .format(config_path=app_args.init.name if app_args.init else None))
-    sysprint('[+] using output logfile {app_args.output.name}\n'
-             .format(app_args=app_args))
-    sysprint('[+] using server {app_args.server} on port {app_args.port}\n'
-             .format(app_args=app_args))
-    sysprint('[+] using timestamp format {app_data[timeformat]}\n'
-             .format(app_data=APP_DATA))
+    template = textwrap.dedent("""
+        otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n
+        [+] started at {time}
+        [+] using configuration file: {config_path}
+        [+] using output logfile {app_args.output.name}
+        [+] using server {app_args.server} on port {app_args.port}
+        [+] using timestamp format {app_data[timeformat]}
+        """).strip()
+    message = template.format(
+        app_data=APP_DATA, app_args=app_args,
+        time=now.strftime(APP_DATA['timeformat']),
+        config_path=app_args.init.name if app_args.init else None
+    )
+    sysprint(message)
 
 
 def connect(app_args):
