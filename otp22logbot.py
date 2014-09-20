@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-##
 #. @project OTP22 Log Bot
 #. This bot logs an IRC channel to a file. It also provides a small
 #. number of additional features related to users and their content.
@@ -84,7 +83,7 @@ def sysprint( data ):
     sys.stdout.write(data)
     sys.stdout.flush()
 
-## @todo stub
+# @todo stub
 def process_command( command ):
     sysprint(command)
 
@@ -110,7 +109,7 @@ sysprint('[+] using timestamp format '+app_data['timeformat']+'\n')
 sock = socket.socket()
 sock.connect((app_args.server, app_args.port))
 
-## @todo accept a server password
+# @todo accept a server password
 #if app_args.password != False:
 #  sock.send(bytes('PASS '+app_args.password+'\r\n'), 'utf-8')
 socksend(sock, 'NICK '+app_args.nick)
@@ -119,7 +118,7 @@ socksend(sock, 'JOIN #'+app_args.channel)
 socksend(sock, 'PRIVMSG '+app_data['overlord']+' :Greetings, overlord. I am for you.')
 socksend(sock, 'PRIVMSG #'+app_args.channel+' :I am a logbot and I am ready! Use ".help" for help.')
 
-## @debug
+# @debug
 # ==> outgoing private message
 #:sendak.freenode.net 401 otp22logbot L0j1k: :No such nick/channel
 # ==> inbound channel traffic
@@ -141,23 +140,23 @@ users = {}
 while not app_data['kill']:
     timestamp = time.time()
     sock_buffer = sock.recv(1024).decode('utf-8')
-    ## @debug1
+    # @debug1
     sysprint(sock_buffer)
     if sock_buffer.find('PING') != -1:
         socksend(sock, 'PONG '+sock_buffer.split()[1]+'\n')
     if sock_buffer.find('PRIVMSG') != -1:
-        ## @debug1
+        # @debug1
         sysprint('handling shit...\n')
-        ## @task handle input lengths. do not parse input of varied lengths.
+        # @task handle input lengths. do not parse input of varied lengths.
         message = sock_buffer.split(':')
-        ## @debug1
+        # @debug1
         sysprint('len(msg)['+str(len(message))+']\n')
         if len(message) != 3:
             continue
         else:
             message_header = message[1].strip().split(' ')
             message_body = message[2].strip().split(' ')
-        ## @debug2
+        # @debug2
         print(message_header)
         print(message_body)
         if not message_body:
@@ -165,7 +164,7 @@ while not app_data['kill']:
         if message_header:
             this_channel = str(message_header[2])
             this_requester = str(message_header[0].split('!')[0])
-        ## @task handle regular messages to the channel
+        # @task handle regular messages to the channel
         last_message = this_message
         this_message = '<'+datetime.datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+this_requester+' ('+this_channel+'): '+message[2]
         users[this_requester] = {
@@ -187,7 +186,7 @@ while not app_data['kill']:
             this_parameter = str(message_body[1])
         if len(message_body) > 2:
             this_modifier = str(message_body[2])
-        ## @debug1
+        # @debug1
         sysprint('cmd['+this_command+'] param['+this_parameter+'] mod['+this_modifier+'] req['+this_requester+']\n')
         if this_command == '.flush':
             socksend(sock, 'PRIVMSG '+this_channel+' :Flushing and rotating logfiles...')
@@ -227,7 +226,7 @@ while not app_data['kill']:
                     socksend(sock, 'PRIVMSG '+this_channel+' :Goodbye!')
                     socksend(sock, 'QUIT :killed by '+this_requester)
         elif this_command == '\x01VERSION\x01':
-            ## @task respond to CTCP VERSION
+            # @task respond to CTCP VERSION
             send_message = '\x01VERSION OTP22LogBot v'+app_data['version']+app_data['phase']+'\x01'
             socksend(sock, 'NOTICE '+this_requester+' :'+send_message)
 
