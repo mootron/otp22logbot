@@ -183,15 +183,15 @@ while not app_data['kill']:
             continue
         command = False
         parameter = False
-        this_modifier = False
+        modifier = False
         if message_body:
             command = str(message_body[0])
         if len(message_body) > 1:
             parameter = str(message_body[1])
         if len(message_body) > 2:
-            this_modifier = str(message_body[2])
+            modifier = str(message_body[2])
         # @debug1
-        sysprint('cmd['+command+'] param['+parameter+'] mod['+this_modifier+'] req['+requester+']\n')
+        sysprint('cmd['+command+'] param['+parameter+'] mod['+modifier+'] req['+requester+']\n')
         if command == '.flush':
             socksend(sock, 'PRIVMSG '+channel+' :Flushing and rotating logfiles...')
         elif command == '.help':
