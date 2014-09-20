@@ -10,7 +10,11 @@
 #. @license BSD3
 #. @version 0.0.4a
 
-import argparse, datetime, os, socket, sys, time
+import argparse
+import datetime
+import socket
+import sys
+import time
 
 parser = argparse.ArgumentParser()
 parser.add_argument('-c', '--channel',
