@@ -129,21 +129,25 @@ sysprint('[+] using server {app_args.server} on port {app_args.port}\n'
 sysprint('[+] using timestamp format {app_data[timeformat]}\n'
          .format(app_data=app_data))
 
-sock = socket.socket()
-sock.connect((app_args.server, app_args.port))
 
-# @todo accept a server password
-# if app_args.password != False:
-#  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
-socksend(sock, 'NICK {0}'.format(app_args.nick))
-socksend(sock, 'USER {app_args.user} {app_args.server} default :{app_args.real}'
-               .format(app_args=app_args))
-socksend(sock, 'JOIN #{app_args.channel}'
-               .format(app_args=app_args))
-socksend(sock, 'PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
-               .format(app_data=app_data))
-socksend(sock, 'PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
-               .format(app_args=app_args))
+def connect():
+    sock = socket.socket()
+    sock.connect((app_args.server, app_args.port))
+
+    # @todo accept a server password
+    # if app_args.password != False:
+    #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
+    socksend(sock, 'NICK {0}'.format(app_args.nick))
+    socksend(sock, 'USER {app_args.user} {app_args.server} default :{app_args.real}'
+                   .format(app_args=app_args))
+    socksend(sock, 'JOIN #{app_args.channel}'
+                   .format(app_args=app_args))
+    socksend(sock, 'PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
+                   .format(app_data=app_data))
+    socksend(sock, 'PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
+                   .format(app_args=app_args))
+    return sock
+
 
 # @debug
 # ==> outgoing private message
@@ -163,6 +167,7 @@ socksend(sock, 'PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use "
 last_message = ''
 message = ''
 users = {}
+sock = connect()
 
 while not app_data['kill']:
     timestamp = time.time()
