@@ -181,20 +181,20 @@ while not app_data['kill']:
         filesend(app_args.output, message)
         if len(message_body) > 3:
             continue
-        this_command = False
+        command = False
         this_parameter = False
         this_modifier = False
         if message_body:
-            this_command = str(message_body[0])
+            command = str(message_body[0])
         if len(message_body) > 1:
             this_parameter = str(message_body[1])
         if len(message_body) > 2:
             this_modifier = str(message_body[2])
         # @debug1
-        sysprint('cmd['+this_command+'] param['+this_parameter+'] mod['+this_modifier+'] req['+requester+']\n')
-        if this_command == '.flush':
+        sysprint('cmd['+command+'] param['+this_parameter+'] mod['+this_modifier+'] req['+requester+']\n')
+        if command == '.flush':
             socksend(sock, 'PRIVMSG '+channel+' :Flushing and rotating logfiles...')
-        elif this_command == '.help':
+        elif command == '.help':
             if this_parameter == False:
                 send_message = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
             elif this_parameter == 'flush':
@@ -210,9 +210,9 @@ while not app_data['kill']:
             elif this_parameter == 'version':
                 send_message = ".version: displays version information"
             socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
-        elif this_command == '.last':
+        elif command == '.last':
             socksend(sock, 'PRIVMSG '+channel+' :'+last_message)
-        elif this_command == '.user':
+        elif command == '.user':
             if this_parameter in users:
                 this_time = datetime.datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
                 user_lastmsg = datetime.datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
@@ -220,16 +220,16 @@ while not app_data['kill']:
             else:
                 send_message = 'Information unavailable for user '+this_parameter
             socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
-        elif this_command == '.version':
+        elif command == '.version':
             socksend(sock, 'PRIVMSG '+channel+' :'+app_data['version']+app_data['phase']+' by '+app_data['overlord'])
         elif channel != app_args.channel:
-            if this_command == '.kill':
+            if command == '.kill':
                 if this_parameter == app_args.kill:
                     app_data['kill'] = True
                     socksend(sock, 'PRIVMSG '+requester+' :With urgency, my lord. Dying at your request.')
                     socksend(sock, 'PRIVMSG '+channel+' :Goodbye!')
                     socksend(sock, 'QUIT :killed by '+requester)
-        elif this_command == '\x01VERSION\x01':
+        elif command == '\x01VERSION\x01':
             # @task respond to CTCP VERSION
             send_message = '\x01VERSION OTP22LogBot v'+app_data['version']+app_data['phase']+'\x01'
             socksend(sock, 'NOTICE '+requester+' :'+send_message)
