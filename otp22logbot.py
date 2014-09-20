@@ -288,3 +288,7 @@ def main():
     filesend(app_args.output, end_message)
     sysprint(end_message)
     app_args.output.close()
+
+
+if __name__ == "__main__":
+    main()
