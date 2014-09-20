@@ -71,12 +71,12 @@ parser.add_argument('-u', '--user',
 app_args = parser.parse_args()
 
 def filesend( handle, data ):
-    if app_data['debug'] == True:
+    if app_data['debug']:
         sysprint('=WRITING=>['+data+']\n')
     handle.write(str(data))
 
 def socksend( socket, data ):
-    if app_data['debug'] == True:
+    if app_data['debug']:
         sysprint('=SENDING=>['+data+']\n')
     socket.send(bytes(data+'\r\n', 'utf-8'))
 
@@ -138,7 +138,7 @@ last_message = ''
 this_message = ''
 users = {}
 
-while app_data['kill'] == False:
+while not app_data['kill']:
     timestamp = time.time()
     sock_buffer = sock.recv(1024).decode('utf-8')
     ## @debug1
@@ -160,9 +160,9 @@ while app_data['kill'] == False:
         ## @debug2
         print(message_header)
         print(message_body)
-        if len(message_body) == 0:
+        if not message_body:
             continue
-        if len(message_header) > 0:
+        if message_header:
             this_channel = str(message_header[2])
             this_requester = str(message_header[0].split('!')[0])
         ## @task handle regular messages to the channel
@@ -181,7 +181,7 @@ while app_data['kill'] == False:
         this_command = False
         this_parameter = False
         this_modifier = False
-        if len(message_body) > 0:
+        if message_body:
             this_command = str(message_body[0])
         if len(message_body) > 1:
             this_parameter = str(message_body[1])
