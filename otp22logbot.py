@@ -98,7 +98,6 @@ app_data = {
   'timeformat_extended': '',
   'version': '0.0.4'
 }
-sockbuffer = "";
 
 sysprint('otp22logbot.py '+app_data['version']+app_data['phase']+' by L0j1k\n')
 sysprint('[+] started at '+datetime.datetime.now().strftime(app_data['timeformat']+'\n'))
