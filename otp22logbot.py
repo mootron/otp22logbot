@@ -167,11 +167,11 @@ while not app_data['kill']:
             continue
         if message_header:
             channel = str(message_header[2])
-            this_requester = str(message_header[0].split('!')[0])
+            requester = str(message_header[0].split('!')[0])
         # @task handle regular messages to the channel
         last_message = message
-        message = '<'+datetime.datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+this_requester+' ('+channel+'): '+message[2]
-        users[this_requester] = {
+        message = '<'+datetime.datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+requester+' ('+channel+'): '+message[2]
+        users[requester] = {
             'altnicks': [],
             'channel': channel,
             'message': message[2],
@@ -191,7 +191,7 @@ while not app_data['kill']:
         if len(message_body) > 2:
             this_modifier = str(message_body[2])
         # @debug1
-        sysprint('cmd['+this_command+'] param['+this_parameter+'] mod['+this_modifier+'] req['+this_requester+']\n')
+        sysprint('cmd['+this_command+'] param['+this_parameter+'] mod['+this_modifier+'] req['+requester+']\n')
         if this_command == '.flush':
             socksend(sock, 'PRIVMSG '+channel+' :Flushing and rotating logfiles...')
         elif this_command == '.help':
@@ -214,9 +214,9 @@ while not app_data['kill']:
             socksend(sock, 'PRIVMSG '+channel+' :'+last_message)
         elif this_command == '.user':
             if this_parameter in users:
-                this_time = datetime.datetime.fromtimestamp(users[this_requester]['timestamp']).strftime(app_data['timeformat_extended'])
-                user_lastmsg = datetime.datetime.fromtimestamp(users[this_requester]['time']).strftime(app_data['timeformat_extended'])
-                send_message = 'User '+this_parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[this_requester]['message']+')'
+                this_time = datetime.datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
+                user_lastmsg = datetime.datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
+                send_message = 'User '+this_parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
             else:
                 send_message = 'Information unavailable for user '+this_parameter
             socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
@@ -226,13 +226,13 @@ while not app_data['kill']:
             if this_command == '.kill':
                 if this_parameter == app_args.kill:
                     app_data['kill'] = True
-                    socksend(sock, 'PRIVMSG '+this_requester+' :With urgency, my lord. Dying at your request.')
+                    socksend(sock, 'PRIVMSG '+requester+' :With urgency, my lord. Dying at your request.')
                     socksend(sock, 'PRIVMSG '+channel+' :Goodbye!')
-                    socksend(sock, 'QUIT :killed by '+this_requester)
+                    socksend(sock, 'QUIT :killed by '+requester)
         elif this_command == '\x01VERSION\x01':
             # @task respond to CTCP VERSION
             send_message = '\x01VERSION OTP22LogBot v'+app_data['version']+app_data['phase']+'\x01'
-            socksend(sock, 'NOTICE '+this_requester+' :'+send_message)
+            socksend(sock, 'NOTICE '+requester+' :'+send_message)
 
 end_message = '[+] CONNECTION STOPPED ... dying at '+datetime.datetime.now().strftime(app_data['timeformat']+'\n')
 filesend(app_args.output, end_message)
