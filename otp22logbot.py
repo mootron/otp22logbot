@@ -182,49 +182,49 @@ while not app_data['kill']:
         if len(message_body) > 3:
             continue
         command = False
-        this_parameter = False
+        parameter = False
         this_modifier = False
         if message_body:
             command = str(message_body[0])
         if len(message_body) > 1:
-            this_parameter = str(message_body[1])
+            parameter = str(message_body[1])
         if len(message_body) > 2:
             this_modifier = str(message_body[2])
         # @debug1
-        sysprint('cmd['+command+'] param['+this_parameter+'] mod['+this_modifier+'] req['+requester+']\n')
+        sysprint('cmd['+command+'] param['+parameter+'] mod['+this_modifier+'] req['+requester+']\n')
         if command == '.flush':
             socksend(sock, 'PRIVMSG '+channel+' :Flushing and rotating logfiles...')
         elif command == '.help':
-            if this_parameter == False:
+            if parameter == False:
                 send_message = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-            elif this_parameter == 'flush':
+            elif parameter == 'flush':
                 send_message = ".flush: flush and rotate logfiles"
-            elif this_parameter == 'help':
+            elif parameter == 'help':
                 send_message = ".help <command>: lists help for a specific command"
-            elif this_parameter == 'kill':
+            elif parameter == 'kill':
                 send_message = ".kill: attempts to kill this bot (good luck)"
-            elif this_parameter == 'last':
+            elif parameter == 'last':
                 send_message = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
-            elif this_parameter == 'user':
+            elif parameter == 'user':
                 send_message = ".user [user]: displays information about user. if unspecified, defaults to command requester"
-            elif this_parameter == 'version':
+            elif parameter == 'version':
                 send_message = ".version: displays version information"
             socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
         elif command == '.last':
             socksend(sock, 'PRIVMSG '+channel+' :'+last_message)
         elif command == '.user':
-            if this_parameter in users:
+            if parameter in users:
                 this_time = datetime.datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
                 user_lastmsg = datetime.datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
-                send_message = 'User '+this_parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
+                send_message = 'User '+parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
             else:
-                send_message = 'Information unavailable for user '+this_parameter
+                send_message = 'Information unavailable for user '+parameter
             socksend(sock, 'PRIVMSG '+channel+' :'+send_message)
         elif command == '.version':
             socksend(sock, 'PRIVMSG '+channel+' :'+app_data['version']+app_data['phase']+' by '+app_data['overlord'])
         elif channel != app_args.channel:
             if command == '.kill':
-                if this_parameter == app_args.kill:
+                if parameter == app_args.kill:
                     app_data['kill'] = True
                     socksend(sock, 'PRIVMSG '+requester+' :With urgency, my lord. Dying at your request.')
                     socksend(sock, 'PRIVMSG '+channel+' :Goodbye!')
