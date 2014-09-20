@@ -143,16 +143,16 @@ users = {}
 
 while not app_data['kill']:
     timestamp = time.time()
-    sock_buffer = sock.recv(1024).decode('utf-8')
+    buf = sock.recv(1024).decode('utf-8')
     # @debug1
-    sysprint(sock_buffer)
-    if sock_buffer.find('PING') != -1:
-        socksend(sock, 'PONG '+sock_buffer.split()[1]+'\n')
-    if sock_buffer.find('PRIVMSG') != -1:
+    sysprint(buf)
+    if buf.find('PING') != -1:
+        socksend(sock, 'PONG '+buf.split()[1]+'\n')
+    if buf.find('PRIVMSG') != -1:
         # @debug1
         sysprint('handling shit...\n')
         # @task handle input lengths. do not parse input of varied lengths.
-        message = sock_buffer.split(':')
+        message = buf.split(':')
         # @debug1
         sysprint('len(msg)['+str(len(message))+']\n')
         if len(message) != 3:
