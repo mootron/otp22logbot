@@ -281,15 +281,19 @@ def loop(sock):
                 socksend(sock, 'NOTICE {0} :{1}'.format(requester, line))
 
 
-def main():
-    startup()
-    sock = connect()
-    loop(sock)
+def shutdown():
     end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
                    .format(datetime.now().strftime(app_data['timeformat'])))
     filesend(app_args.output, end_message)
     sysprint(end_message)
     app_args.output.close()
+
+
+def main():
+    startup()
+    sock = connect()
+    loop(sock)
+    shutdown()
 
 
 if __name__ == "__main__":
