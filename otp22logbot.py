@@ -10,7 +10,6 @@ This is the primary application driver file.
 @license BSD3
 @version 0.0.4a
 """
-
 import argparse
 import datetime
 import socket
@@ -139,7 +138,7 @@ socksend(sock, 'PRIVMSG #'+app_args.channel+' :I am a logbot and I am ready! Use
 # ==> nick change
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
 last_message = ''
-this_message = ''
+message = ''
 users = {}
 
 while not app_data['kill']:
@@ -170,8 +169,8 @@ while not app_data['kill']:
             this_channel = str(message_header[2])
             this_requester = str(message_header[0].split('!')[0])
         # @task handle regular messages to the channel
-        last_message = this_message
-        this_message = '<'+datetime.datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+this_requester+' ('+this_channel+'): '+message[2]
+        last_message = message
+        message = '<'+datetime.datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+this_requester+' ('+this_channel+'): '+message[2]
         users[this_requester] = {
             'altnicks': [],
             'channel': this_channel,
@@ -179,7 +178,7 @@ while not app_data['kill']:
             'seen': timestamp,
             'time': timestamp
         }
-        filesend(app_args.output, this_message)
+        filesend(app_args.output, message)
         if len(message_body) > 3:
             continue
         this_command = False
