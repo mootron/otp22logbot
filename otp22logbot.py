@@ -11,7 +11,7 @@ This is the primary application driver file.
 @version 0.0.4a
 """
 import argparse
-import datetime
+from datetime import datetime
 import socket
 import sys
 import time
@@ -103,7 +103,7 @@ app_data = {
 }
 
 sysprint('otp22logbot.py '+app_data['version']+app_data['phase']+' by L0j1k\n')
-sysprint('[+] started at '+datetime.datetime.now().strftime(app_data['timeformat']+'\n'))
+sysprint('[+] started at '+datetime.now().strftime(app_data['timeformat']+'\n'))
 if app_args.init != False:
     sysprint('[+] using configuration file: '+app_args.init.name+'\n')
 sysprint('[+] using output logfile '+app_args.output.name+'\n')
@@ -170,7 +170,7 @@ while not app_data['kill']:
             requester = str(message_header[0].split('!')[0])
         # @task handle regular messages to the channel
         last_message = message
-        message = '<'+datetime.datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+requester+' ('+channel+'): '+message[2]
+        message = '<'+datetime.fromtimestamp(timestamp).strftime(app_data['timeformat'])+'> '+requester+' ('+channel+'): '+message[2]
         users[requester] = {
             'altnicks': [],
             'channel': channel,
@@ -214,8 +214,8 @@ while not app_data['kill']:
             socksend(sock, 'PRIVMSG '+channel+' :'+last_message)
         elif command == '.user':
             if parameter in users:
-                this_time = datetime.datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
-                user_lastmsg = datetime.datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
+                this_time = datetime.fromtimestamp(users[requester]['timestamp']).strftime(app_data['timeformat_extended'])
+                user_lastmsg = datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
                 line = 'User '+parameter+' (last seen '+this_time+'), (last message '+user_lastmsg+' -- '+users[requester]['message']+')'
             else:
                 line = 'Information unavailable for user '+parameter
@@ -234,7 +234,7 @@ while not app_data['kill']:
             line = '\x01VERSION OTP22LogBot v'+app_data['version']+app_data['phase']+'\x01'
             socksend(sock, 'NOTICE '+requester+' :'+line)
 
-end_message = '[+] CONNECTION STOPPED ... dying at '+datetime.datetime.now().strftime(app_data['timeformat']+'\n')
+end_message = '[+] CONNECTION STOPPED ... dying at '+datetime.now().strftime(app_data['timeformat']+'\n')
 filesend(app_args.output, end_message)
 sysprint(end_message)
 app_args.output.close()
