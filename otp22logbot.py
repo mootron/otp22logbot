@@ -80,7 +80,6 @@ parser.add_argument(
     nargs='?',
     type=str
 )
-app_args = parser.parse_args()
 
 
 def filesend(handle, data):
@@ -116,7 +115,7 @@ app_data = {
     'version': '0.0.4'
 }
 
-def startup():
+def startup(app_args):
     sysprint('otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n'
              .format(app_data=app_data))
     sysprint('[+] started at {time}\n'
@@ -131,7 +130,7 @@ def startup():
              .format(app_data=app_data))
 
 
-def connect():
+def connect(app_args):
     sock = socket.socket()
     sock.connect((app_args.server, app_args.port))
 
@@ -166,7 +165,7 @@ def connect():
 # ==> nick change
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
 
-def loop(sock):
+def loop(sock, app_args):
     last_message = ''
     message = ''
     users = {}
@@ -281,7 +280,7 @@ def loop(sock):
                 socksend(sock, 'NOTICE {0} :{1}'.format(requester, line))
 
 
-def shutdown():
+def shutdown(app_args):
     end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
                    .format(datetime.now().strftime(app_data['timeformat'])))
     filesend(app_args.output, end_message)
@@ -290,10 +289,11 @@ def shutdown():
 
 
 def main():
-    startup()
-    sock = connect()
-    loop(sock)
-    shutdown()
+    app_args = parser.parse_args()
+    startup(app_args)
+    sock = connect(app_args)
+    loop(sock, app_args)
+    shutdown(app_args)
 
 
 if __name__ == "__main__":
