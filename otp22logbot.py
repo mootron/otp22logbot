@@ -116,18 +116,19 @@ app_data = {
     'version': '0.0.4'
 }
 
-sysprint('otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n'
-         .format(app_data=app_data))
-sysprint('[+] started at {time}\n'
-         .format(time=datetime.now().strftime(app_data['timeformat'])))
-sysprint('[+] using configuration file: {config_path}\n'
-         .format(config_path=app_args.init.name if app_args.init else None))
-sysprint('[+] using output logfile {app_args.output.name}\n'
-         .format(app_args=app_args))
-sysprint('[+] using server {app_args.server} on port {app_args.port}\n'
-         .format(app_args=app_args))
-sysprint('[+] using timestamp format {app_data[timeformat]}\n'
-         .format(app_data=app_data))
+def startup():
+    sysprint('otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n'
+             .format(app_data=app_data))
+    sysprint('[+] started at {time}\n'
+             .format(time=datetime.now().strftime(app_data['timeformat'])))
+    sysprint('[+] using configuration file: {config_path}\n'
+             .format(config_path=app_args.init.name if app_args.init else None))
+    sysprint('[+] using output logfile {app_args.output.name}\n'
+             .format(app_args=app_args))
+    sysprint('[+] using server {app_args.server} on port {app_args.port}\n'
+             .format(app_args=app_args))
+    sysprint('[+] using timestamp format {app_data[timeformat]}\n'
+             .format(app_data=app_data))
 
 
 def connect():
@@ -281,6 +282,7 @@ def loop(sock):
 
 
 def main():
+    startup()
     sock = connect()
     loop(sock)
     end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
