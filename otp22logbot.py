@@ -165,11 +165,10 @@ def connect():
 # ==> nick change
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
 
-def loop():
+def loop(sock):
     last_message = ''
     message = ''
     users = {}
-    sock = connect()
 
     while not app_data['kill']:
         timestamp = time.time()
@@ -282,7 +281,8 @@ def loop():
 
 
 def main():
-    loop()
+    sock = connect()
+    loop(sock)
     end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
                    .format(datetime.now().strftime(app_data['timeformat'])))
     filesend(app_args.output, end_message)
