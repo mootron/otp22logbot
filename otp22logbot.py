@@ -107,7 +107,6 @@ def process_command(command):
     sysprint(command)
 
 
-command_exit = False
 APP_DATA = {
     'debug': True,
     'kill': False,
