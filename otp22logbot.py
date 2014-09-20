@@ -82,23 +82,28 @@ parser.add_argument(
 )
 app_args = parser.parse_args()
 
+
 def filesend( handle, data ):
     if app_data['debug']:
         sysprint('=WRITING=>[{0}]\n'.format(data))
     handle.write(str(data))
+
 
 def socksend( socket, data ):
     if app_data['debug']:
         sysprint('=SENDING=>[{0}]\n'.format(data))
     socket.send((data + '\r\n').encode('utf-8'))
 
+
 def sysprint( data ):
     sys.stdout.write(data)
     sys.stdout.flush()
 
+
 # @todo stub
 def process_command( command ):
     sysprint(command)
+
 
 command_exit = False
 app_data = {
