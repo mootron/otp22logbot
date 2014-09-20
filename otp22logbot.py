@@ -164,122 +164,127 @@ def connect():
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com JOIN #ircugm
 # ==> nick change
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
-last_message = ''
-message = ''
-users = {}
-sock = connect()
 
-while not app_data['kill']:
-    timestamp = time.time()
-    buf = sock.recv(1024).decode('utf-8')
-    # @debug1
-    sysprint(buf)
-    if buf.find('PING') != -1:
-        socksend(sock, 'PONG {0}\n'.format(buf.split()[1]))
-    if buf.find('PRIVMSG') != -1:
+def loop():
+    last_message = ''
+    message = ''
+    users = {}
+    sock = connect()
+
+    while not app_data['kill']:
+        timestamp = time.time()
+        buf = sock.recv(1024).decode('utf-8')
         # @debug1
-        sysprint('handling shit...\n')
-        # @task handle input lengths. do not parse input of varied lengths.
-        message = buf.split(':')
-        # @debug1
-        sysprint('len(msg)[{0}]\n'.format(len(message)))
-        if len(message) != 3:
-            continue
-        else:
-            message_header = message[1].strip().split(' ')
-            message_body = message[2].strip().split(' ')
-        # @debug2
-        print(message_header)
-        print(message_body)
-        if not message_body:
-            continue
-        if message_header:
-            channel = str(message_header[2])
-            requester = str(message_header[0].split('!')[0])
-        # @task handle regular messages to the channel
-        last_message = message
-        message = '<{0}> {1} ({2}): {3}'.format(
-            datetime.fromtimestamp(timestamp).strftime(app_data['timeformat']),
-            requester,
-            channel,
-            message[2]
-        )
-        users[requester] = {
-            'altnicks': [],
-            'channel': channel,
-            'message': message[2],
-            'seen': timestamp,
-            'time': timestamp
-        }
-        filesend(app_args.output, message)
-        if len(message_body) > 3:
-            continue
-        command = False
-        parameter = False
-        modifier = False
-        if message_body:
-            command = str(message_body[0])
-        if len(message_body) > 1:
-            parameter = str(message_body[1])
-        if len(message_body) > 2:
-            modifier = str(message_body[2])
-        # @debug1
-        sysprint('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
-                 .format(command, parameter, modifier, requester))
-        if command == '.flush':
-            socksend(sock, 'PRIVMSG {0} :Flushing and rotating logfiles...'
-                           .format(channel))
-        elif command == '.help':
-            if not parameter:
-                line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-            elif parameter == 'flush':
-                line = ".flush: flush and rotate logfiles"
-            elif parameter == 'help':
-                line = ".help <command>: lists help for a specific command"
-            elif parameter == 'kill':
-                line = ".kill: attempts to kill this bot (good luck)"
-            elif parameter == 'last':
-                line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
-            elif parameter == 'user':
-                line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
-            elif parameter == 'version':
-                line = ".version: displays version information"
-            socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, line))
-        elif command == '.last':
-            socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, last_message))
-        elif command == '.user':
-            if parameter in users:
-                this_time = datetime.fromtimestamp(users[requester]['seen']).strftime(app_data['timeformat_extended'])
-                user_lastmsg = datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
-                line = ('User {0} (last seen {1}), (last message {2} -- {3})'
-                        .format(parameter, this_time, user_lastmsg,
-                                users[requester]['message']))
+        sysprint(buf)
+        if buf.find('PING') != -1:
+            socksend(sock, 'PONG {0}\n'.format(buf.split()[1]))
+        if buf.find('PRIVMSG') != -1:
+            # @debug1
+            sysprint('handling shit...\n')
+            # @task handle input lengths. do not parse input of varied lengths.
+            message = buf.split(':')
+            # @debug1
+            sysprint('len(msg)[{0}]\n'.format(len(message)))
+            if len(message) != 3:
+                continue
             else:
-                line = 'Information unavailable for user {0}'.format(parameter)
-            socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, line))
-        elif command == '.version':
-            version_string = (
-                "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
-                .format(app_data=app_data))
-            socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, version_string))
-        elif channel != app_args.channel:
-            if command == '.kill':
-                if parameter == app_args.kill:
-                    app_data['kill'] = True
-                    socksend(sock, 'PRIVMSG {0} :With urgency, my lord. '
-                                   'Dying at your request.'.format(requester))
-                    socksend(sock, 'PRIVMSG {0} :Goodbye!'.format(channel))
-                    socksend(sock, 'QUIT :killed by {0}'.format(requester))
-        elif command == '\x01VERSION\x01':
-            # @task respond to CTCP VERSION
-            line = (
-                '\x01VERSION OTP22LogBot '
-                'v{app_data[version]}{app_data[phase]}\x01'
-                .format(app_data=app_data))
-            socksend(sock, 'NOTICE {0} :{1}'.format(requester, line))
+                message_header = message[1].strip().split(' ')
+                message_body = message[2].strip().split(' ')
+            # @debug2
+            print(message_header)
+            print(message_body)
+            if not message_body:
+                continue
+            if message_header:
+                channel = str(message_header[2])
+                requester = str(message_header[0].split('!')[0])
+            # @task handle regular messages to the channel
+            last_message = message
+            message = '<{0}> {1} ({2}): {3}'.format(
+                datetime.fromtimestamp(timestamp).strftime(app_data['timeformat']),
+                requester,
+                channel,
+                message[2]
+            )
+            users[requester] = {
+                'altnicks': [],
+                'channel': channel,
+                'message': message[2],
+                'seen': timestamp,
+                'time': timestamp
+            }
+            filesend(app_args.output, message)
+            if len(message_body) > 3:
+                continue
+            command = False
+            parameter = False
+            modifier = False
+            if message_body:
+                command = str(message_body[0])
+            if len(message_body) > 1:
+                parameter = str(message_body[1])
+            if len(message_body) > 2:
+                modifier = str(message_body[2])
+            # @debug1
+            sysprint('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
+                     .format(command, parameter, modifier, requester))
+            if command == '.flush':
+                socksend(sock, 'PRIVMSG {0} :Flushing and rotating logfiles...'
+                               .format(channel))
+            elif command == '.help':
+                if not parameter:
+                    line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
+                elif parameter == 'flush':
+                    line = ".flush: flush and rotate logfiles"
+                elif parameter == 'help':
+                    line = ".help <command>: lists help for a specific command"
+                elif parameter == 'kill':
+                    line = ".kill: attempts to kill this bot (good luck)"
+                elif parameter == 'last':
+                    line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
+                elif parameter == 'user':
+                    line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
+                elif parameter == 'version':
+                    line = ".version: displays version information"
+                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, line))
+            elif command == '.last':
+                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, last_message))
+            elif command == '.user':
+                if parameter in users:
+                    this_time = datetime.fromtimestamp(users[requester]['seen']).strftime(app_data['timeformat_extended'])
+                    user_lastmsg = datetime.fromtimestamp(users[requester]['time']).strftime(app_data['timeformat_extended'])
+                    line = ('User {0} (last seen {1}), (last message {2} -- {3})'
+                            .format(parameter, this_time, user_lastmsg,
+                                    users[requester]['message']))
+                else:
+                    line = 'Information unavailable for user {0}'.format(parameter)
+                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, line))
+            elif command == '.version':
+                version_string = (
+                    "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
+                    .format(app_data=app_data))
+                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, version_string))
+            elif channel != app_args.channel:
+                if command == '.kill':
+                    if parameter == app_args.kill:
+                        app_data['kill'] = True
+                        socksend(sock, 'PRIVMSG {0} :With urgency, my lord. '
+                                       'Dying at your request.'.format(requester))
+                        socksend(sock, 'PRIVMSG {0} :Goodbye!'.format(channel))
+                        socksend(sock, 'QUIT :killed by {0}'.format(requester))
+            elif command == '\x01VERSION\x01':
+                # @task respond to CTCP VERSION
+                line = (
+                    '\x01VERSION OTP22LogBot '
+                    'v{app_data[version]}{app_data[phase]}\x01'
+                    .format(app_data=app_data))
+                socksend(sock, 'NOTICE {0} :{1}'.format(requester, line))
 
-end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
-               .format(datetime.now().strftime(app_data['timeformat'])))
-filesend(app_args.output, end_message)
-sysprint(end_message)
-app_args.output.close()
+
+def main():
+    loop()
+    end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
+                   .format(datetime.now().strftime(app_data['timeformat'])))
+    filesend(app_args.output, end_message)
+    sysprint(end_message)
+    app_args.output.close()
