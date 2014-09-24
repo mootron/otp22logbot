@@ -99,7 +99,12 @@ def make_parser():
     return parser
 
 
-class SockSender(object):
+class Connection(object):
+    """Wrap a socket.
+
+    This lets us do things like log interactions with the socket and
+    easily change how we handle sockets in the future.
+    """
     def __init__(self, socket, logger):
         self.socket = socket
         self.logger = logger
@@ -107,6 +112,10 @@ class SockSender(object):
     def send(self, data):
         self.logger.debug('=SENDING=>[{0}]\n'.format(data))
         self.socket.send((data + '\r\n').encode('utf-8'))
+
+    def recv(self, size=1024):
+        buf = self.socket.recv(size).decode('utf-8')
+        return buf
 
 
 class Bot(object):
@@ -143,41 +152,41 @@ class Bot(object):
     def connect(self):
         sock = socket.socket()
         sock.connect((self.app_args.server, self.app_args.port))
-        return sock
+        return Connection(sock, self.logger)
 
-    def handshake(self, sock):
-        socksend = SockSender(sock, self.logger).send
+    def handshake(self, conn):
+        send = conn.send
         # @todo accept a server password
         # if app_args.password != False:
         #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
-        socksend('NICK {0}'.format(self.app_args.nick))
-        socksend('USER {app_args.user} {app_args.server} default :{app_args.real}'
-                 .format(app_args=self.app_args))
-        socksend('JOIN #{app_args.channel}'
-                 .format(app_args=self.app_args))
-        socksend('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
-                 .format(app_data=self.app_data))
-        socksend('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
-                 .format(app_args=self.app_args))
+        send('NICK {0}'.format(self.app_args.nick))
+        send('USER {app_args.user} {app_args.server} default :{app_args.real}'
+             .format(app_args=self.app_args))
+        send('JOIN #{app_args.channel}'
+             .format(app_args=self.app_args))
+        send('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
+             .format(app_data=self.app_data))
+        send('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
+             .format(app_args=self.app_args))
 
-    def loop(self, sock):
+    def loop(self, conn):
         """
-        This takes sock for two reasons.
+        This takes conn for two reasons.
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
-        socksend = SockSender(sock, self.logger).send
+        send = conn.send
         last_message = ''
         message = ''
         users = {}
 
         while not self.should_die:
             now = datetime.utcnow()
-            buf = sock.recv(1024).decode('utf-8')
+            buf = conn.recv(1024)
             # @debug1
             self.logger.debug('received {0}'.format(buf))
             if buf.find('PING') != -1:
-                socksend('PONG {0}\n'.format(buf.split()[1]))
+                send('PONG {0}\n'.format(buf.split()[1]))
             if buf.find('PRIVMSG') != -1:
                 # @debug1
                 self.logger.debug('handling shit')
@@ -229,7 +238,7 @@ class Bot(object):
                 self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
                                  .format(command, parameter, modifier, requester))
                 if command == '.flush':
-                    socksend('PRIVMSG {0} :Flushing and rotating logfiles...'
+                    send('PRIVMSG {0} :Flushing and rotating logfiles...'
                              .format(channel))
                 elif command == '.help':
                     if not parameter:
@@ -246,9 +255,9 @@ class Bot(object):
                         line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
                     elif parameter == 'version':
                         line = ".version: displays version information"
-                    socksend('PRIVMSG {0} :{1}'.format(channel, line))
+                    send('PRIVMSG {0} :{1}'.format(channel, line))
                 elif command == '.last':
-                    socksend('PRIVMSG {0} :{1}'.format(channel, last_message))
+                    send('PRIVMSG {0} :{1}'.format(channel, last_message))
                 elif command == '.user':
                     if parameter in users:
                         this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
@@ -258,27 +267,27 @@ class Bot(object):
                                         users[requester]['message']))
                     else:
                         line = 'Information unavailable for user {0}'.format(parameter)
-                    socksend('PRIVMSG {0} :{1}'.format(channel, line))
+                    send('PRIVMSG {0} :{1}'.format(channel, line))
                 elif command == '.version':
                     version_string = (
                         "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
                         .format(app_data=self.app_data))
-                    socksend('PRIVMSG {0} :{1}'.format(channel, version_string))
+                    send('PRIVMSG {0} :{1}'.format(channel, version_string))
                 elif channel != self.app_args.channel:
                     if command == '.kill':
                         if parameter == self.app_args.kill:
                             self.should_die = True
-                            socksend('PRIVMSG {0} :With urgency, my lord. '
-                                     'Dying at your request.'.format(requester))
-                            socksend('PRIVMSG {0} :Goodbye!'.format(channel))
-                            socksend('QUIT :killed by {0}'.format(requester))
+                            send('PRIVMSG {0} :With urgency, my lord. '
+                                 'Dying at your request.'.format(requester))
+                            send('PRIVMSG {0} :Goodbye!'.format(channel))
+                            send('QUIT :killed by {0}'.format(requester))
                 elif command == '\x01VERSION\x01':
                     # @task respond to CTCP VERSION
                     line = (
                         '\x01VERSION OTP22LogBot '
                         'v{app_data[version]}{app_data[phase]}\x01'
                         .format(app_data=self.app_data))
-                    socksend('NOTICE {0} :{1}'.format(requester, line))
+                    send('NOTICE {0} :{1}'.format(requester, line))
 
     def shutdown(self):
         now = datetime.utcnow()
