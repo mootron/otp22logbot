@@ -139,6 +139,9 @@ class Connection(object):
     def pong(self, line):
         self.send('PONG {0}\n'.format(line))
 
+    def notice(self, name, line):
+        self.send('NOTICE {0} :{1}'.format(name, line))
+
     def quit(self, line):
         self.send('QUIT :{0}'.format(line))
 
@@ -311,7 +314,7 @@ class Bot(object):
                         '\x01VERSION OTP22LogBot '
                         'v{app_data[version]}{app_data[phase]}\x01'
                         .format(app_data=self.app_data))
-                    send('NOTICE {0} :{1}'.format(requester, line))
+                    conn.notice(requester, line)
 
     def shutdown(self):
         now = datetime.utcnow()
