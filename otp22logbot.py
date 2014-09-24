@@ -205,7 +205,6 @@ class Bot(object):
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
-        send = conn.send
         last_message = ''
         message = ''
         users = {}
