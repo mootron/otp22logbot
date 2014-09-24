@@ -341,8 +341,6 @@ class Bot(object):
                 }
                 self.file_send(message)
                 command, *args = self.parse_command(requester, message_body)
-                if not command:
-                    continue
                 function = commands.get(command)
                 if function:
                     function(conn, requester, channel, args)
