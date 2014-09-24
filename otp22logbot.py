@@ -290,6 +290,13 @@ class Bot(object):
             requester, channel, content)
         return formatted_message
 
+    def get_user(self, nick):
+        user = self.users.get(nick)
+        if not user:
+            user = User(nick)
+            self.users[nick] = user
+        return user
+
     def user(self, conn, requester, channel, args):
         parameter = args[0] if args else None
         if parameter in self.users:
@@ -353,10 +360,7 @@ class Bot(object):
                 formatted_message = self.format_message(
                     requester, channel, message[2])
 
-                user = self.users.get(requester)
-                if not user:
-                    user = User(requester)
-                    self.users[requester] = user
+                user = self.get_user(requester)
                 user.channels.add(channel)
                 user.message = message[2]
                 user.seen = now
