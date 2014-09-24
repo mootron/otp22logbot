@@ -103,11 +103,6 @@ def sysprint(data):
     sys.stdout.flush()
 
 
-# @todo stub
-def process_command(command):
-    sysprint(command)
-
-
 APP_DATA = {
     'debug': True,
     'kill': False,
