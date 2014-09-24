@@ -117,7 +117,21 @@ class Bot(object):
         self.logger = logger
 
     def startup(self):
-        pass
+        now = datetime.utcnow()
+        template = textwrap.dedent("""
+            otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n
+            [+] started at {time}
+            [+] using configuration file: {config_path}
+            [+] using output logfile {app_args.output.name}
+            [+] using server {app_args.server} on port {app_args.port}
+            [+] using timestamp format {app_data[timeformat]}
+            """).strip()
+        message = template.format(
+            app_data=APP_DATA, app_args=self.app_args,
+            time=now.strftime(APP_DATA['timeformat']),
+            config_path=self.app_args.init.name if self.app_args.init else None
+        )
+        self.logger.info(message)
 
     def connect(self):
         sock = None
@@ -138,24 +152,6 @@ APP_DATA = {
     'timeformat_extended': '',
     'version': '0.0.4'
 }
-
-def startup(app_args, logger):
-    now = datetime.utcnow()
-    template = textwrap.dedent("""
-        otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n
-        [+] started at {time}
-        [+] using configuration file: {config_path}
-        [+] using output logfile {app_args.output.name}
-        [+] using server {app_args.server} on port {app_args.port}
-        [+] using timestamp format {app_data[timeformat]}
-        """).strip()
-    message = template.format(
-        app_data=APP_DATA, app_args=app_args,
-        time=now.strftime(APP_DATA['timeformat']),
-        config_path=app_args.init.name if app_args.init else None
-    )
-    logger.info(message)
-
 
 def connect(app_args, logger):
     sock = socket.socket()
@@ -345,7 +341,7 @@ def main():
     app_args = parser.parse_args()
     logger = configure_logging(app_args)
     bot = Bot(app_args, logger)
-    startup(app_args, logger)
+    bot.startup()
     sock = connect(app_args, logger)
     loop(sock, app_args, logger)
     shutdown(app_args, logger)
