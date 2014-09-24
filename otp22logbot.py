@@ -86,16 +86,24 @@ def make_parser():
     return parser
 
 
-def filesend(handle, data, logger):
-    if APP_DATA['debug']:
-        logger.debug('=WRITING=>[{0}]\n'.format(data))
-    handle.write(str(data))
+class FileSender(object):
+    def __init__(self, handle, logger):
+        self.handle = handle
+        self.logger = logger
+
+    def send(self, data):
+        self.logger.debug('=WRITING=>[{0}]\n'.format(data))
+        self.handle.write(str(data))
 
 
-def socksend(socket, data, logger):
-    if APP_DATA['debug']:
-        logger.debug('=SENDING=>[{0}]\n'.format(data))
-    socket.send((data + '\r\n').encode('utf-8'))
+class SockSender(object):
+    def __init__(self, socket, logger):
+        self.socket = socket
+        self.logger = logger
+
+    def send(self, data):
+        self.logger.debug('=SENDING=>[{0}]\n'.format(data))
+        self.socket.send((data + '\r\n').encode('utf-8'))
 
 
 APP_DATA = {
@@ -129,19 +137,21 @@ def startup(app_args, logger):
 def connect(app_args, logger):
     sock = socket.socket()
     sock.connect((app_args.server, app_args.port))
+    socksender = SockSender(sock, logger)
+    socksend = socksender.send
 
     # @todo accept a server password
     # if app_args.password != False:
     #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
-    socksend(sock, 'NICK {0}'.format(app_args.nick), logger)
-    socksend(sock, 'USER {app_args.user} {app_args.server} default :{app_args.real}'
-                   .format(app_args=app_args), logger)
-    socksend(sock, 'JOIN #{app_args.channel}'
-                   .format(app_args=app_args), logger)
-    socksend(sock, 'PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
-                   .format(app_data=APP_DATA), logger)
-    socksend(sock, 'PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
-                   .format(app_args=app_args), logger)
+    socksend('NICK {0}'.format(app_args.nick))
+    socksend('USER {app_args.user} {app_args.server} default :{app_args.real}'
+             .format(app_args=app_args))
+    socksend('JOIN #{app_args.channel}'
+             .format(app_args=app_args))
+    socksend('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
+             .format(app_data=APP_DATA))
+    socksend('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
+             .format(app_args=app_args))
     return sock
 
 
@@ -162,6 +172,10 @@ def connect(app_args, logger):
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
 
 def loop(sock, app_args, logger):
+    filesender = FileSender(app_args.output, logger)
+    socksender = SockSender(sock, logger)
+    filesend = filesender.send
+    socksend = socksender.send
     last_message = ''
     message = ''
     users = {}
@@ -172,7 +186,7 @@ def loop(sock, app_args, logger):
         # @debug1
         logger.debug('received {0}'.format(buf))
         if buf.find('PING') != -1:
-            socksend(sock, 'PONG {0}\n'.format(buf.split()[1]), logger)
+            socksend('PONG {0}\n'.format(buf.split()[1]))
         if buf.find('PRIVMSG') != -1:
             # @debug1
             logger.debug('handling shit')
@@ -208,7 +222,7 @@ def loop(sock, app_args, logger):
                 'seen': now,
                 'time': now
             }
-            filesend(app_args.output, message, logger)
+            filesend(message)
             if len(message_body) > 3:
                 continue
             command = False
@@ -224,8 +238,8 @@ def loop(sock, app_args, logger):
             logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
                      .format(command, parameter, modifier, requester))
             if command == '.flush':
-                socksend(sock, 'PRIVMSG {0} :Flushing and rotating logfiles...'
-                               .format(channel), logger)
+                socksend('PRIVMSG {0} :Flushing and rotating logfiles...'
+                         .format(channel))
             elif command == '.help':
                 if not parameter:
                     line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
@@ -241,9 +255,9 @@ def loop(sock, app_args, logger):
                     line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
                 elif parameter == 'version':
                     line = ".version: displays version information"
-                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, line), logger)
+                socksend('PRIVMSG {0} :{1}'.format(channel, line))
             elif command == '.last':
-                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, last_message), logger)
+                socksend('PRIVMSG {0} :{1}'.format(channel, last_message))
             elif command == '.user':
                 if parameter in users:
                     this_time = users[requester]['seen'].strftime(APP_DATA['timeformat_extended'])
@@ -253,34 +267,36 @@ def loop(sock, app_args, logger):
                                     users[requester]['message']))
                 else:
                     line = 'Information unavailable for user {0}'.format(parameter)
-                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, line), logger)
+                socksend('PRIVMSG {0} :{1}'.format(channel, line))
             elif command == '.version':
                 version_string = (
                     "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
                     .format(app_data=APP_DATA))
-                socksend(sock, 'PRIVMSG {0} :{1}'.format(channel, version_string), logger)
+                socksend('PRIVMSG {0} :{1}'.format(channel, version_string))
             elif channel != app_args.channel:
                 if command == '.kill':
                     if parameter == app_args.kill:
                         APP_DATA['kill'] = True
-                        socksend(sock, 'PRIVMSG {0} :With urgency, my lord. '
-                                       'Dying at your request.'.format(requester), logger)
-                        socksend(sock, 'PRIVMSG {0} :Goodbye!'.format(channel), logger)
-                        socksend(sock, 'QUIT :killed by {0}'.format(requester), logger)
+                        socksend('PRIVMSG {0} :With urgency, my lord. '
+                                 'Dying at your request.'.format(requester))
+                        socksend('PRIVMSG {0} :Goodbye!'.format(channel))
+                        socksend('QUIT :killed by {0}'.format(requester))
             elif command == '\x01VERSION\x01':
                 # @task respond to CTCP VERSION
                 line = (
                     '\x01VERSION OTP22LogBot '
                     'v{app_data[version]}{app_data[phase]}\x01'
                     .format(app_data=APP_DATA))
-                socksend(sock, 'NOTICE {0} :{1}'.format(requester, line), logger)
+                socksend( 'NOTICE {0} :{1}'.format(requester, line))
 
 
 def shutdown(app_args, logger):
     now = datetime.utcnow()
+    filesender = FileSender(app_args.output, logger)
+    filesend = filesender.send
     end_message = ('CONNECTION STOPPED ... dying at {0}\n'
                    .format(now.strftime(APP_DATA['timeformat'])))
-    filesend(app_args.output, end_message, logger)
+    filesend(end_message)
     logger.info(end_message)
     app_args.output.close()
 
