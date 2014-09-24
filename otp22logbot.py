@@ -175,6 +175,15 @@ class Bot(object):
         self.logger = logger
         self.should_die = False
         self.users = {}
+        self.commands = {
+            '.flush': self.flush,
+            '.help': self.help,
+            '.version': self.version,
+            '.kill': self.kill,
+            '.last': self.last,
+            '.user': self.user,
+            '\x01VERSION\x01': self.version_query,
+        }
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]\n'.format(data))
@@ -320,16 +329,6 @@ class Bot(object):
         message = ''
         formatted_message = ''
 
-        commands = {
-            '.flush': self.flush,
-            '.help': self.help,
-            '.version': self.version,
-            '.kill': self.kill,
-            '.last': self.last,
-            '.user': self.user,
-            '\x01VERSION\x01': self.version_query,
-        }
-
         while not self.should_die:
             received = conn.recv(1024)
             # @debug1
@@ -348,7 +347,7 @@ class Bot(object):
 
                 self.file_send(formatted_message)
                 command, *args = self.parse_command(requester, message_body)
-                function = commands.get(command)
+                function = self.commands.get(command)
                 if function:
                     function(conn, requester, channel, args)
 
