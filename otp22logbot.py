@@ -173,6 +173,7 @@ class Bot(object):
         self.app_args = app_args
         self.logger = logger
         self.should_die = False
+        self.users = {}
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]\n'.format(data))
@@ -297,12 +298,11 @@ class Bot(object):
         """
         message = ''
         formatted_message = ''
-        users = {}
 
         def user(conn, requester, channel, args):
             parameter = args[0] if args else None
-            if parameter in users:
-                user = users[requester]
+            if parameter in self.users:
+                user = self.users[requester]
                 this_time = user.seen.strftime(self.app_data['timeformat_extended'])
                 user_lastmsg = user.time.strftime(self.app_data['timeformat_extended'])
                 line = ('User {0} (last seen {1}), (last message {2} -- {3})'
@@ -352,10 +352,11 @@ class Bot(object):
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
                     requester, channel, message[2])
-                user = users.get(requester)
+
+                user = self.users.get(requester)
                 if not user:
                     user = User(requester)
-                    users[requester] = user
+                    self.users[requester] = user
                 user.channels.add(channel)
                 user.message = message[2]
                 user.seen = now
