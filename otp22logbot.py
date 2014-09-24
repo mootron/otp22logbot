@@ -99,6 +99,23 @@ def make_parser():
     return parser
 
 
+class User(object):
+    """Information on one IRC user.
+    """
+    def __init__(self, nick):
+        self.nicks = set([nick])
+        self.channels = set()
+        self.message = None
+        self.seen = None
+        self.time = None
+
+    def update(self, channel, message, time):
+        self.channels.add(channel)
+        self.message = message
+        self.seen = time
+        self.time = now
+
+
 class Connection(object):
     """Wrap a socket.
 
@@ -286,11 +303,11 @@ class Bot(object):
             parameter = args[0] if args else None
             if parameter in users:
                 user = users[requester]
-                this_time = user['seen'].strftime(self.app_data['timeformat_extended'])
-                user_lastmsg = user['time'].strftime(self.app_data['timeformat_extended'])
+                this_time = user.seen.strftime(self.app_data['timeformat_extended'])
+                user_lastmsg = user.time.strftime(self.app_data['timeformat_extended'])
                 line = ('User {0} (last seen {1}), (last message {2} -- {3})'
                         .format(parameter, this_time, user_lastmsg,
-                                user['message']))
+                                user.message))
             else:
                 line = 'Information unavailable for user {0}'.format(parameter)
             conn.privmsg(channel, line)
@@ -335,13 +352,15 @@ class Bot(object):
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
                     requester, channel, message[2])
-                users[requester] = {
-                    'altnicks': [],
-                    'channel': channel,
-                    'message': message[2],
-                    'seen': now,
-                    'time': now
-                }
+                user = users.get(requester)
+                if not user:
+                    user = User(requester)
+                    users[requester] = user
+                user.channels.add(channel)
+                user.message = message[2]
+                user.seen = now
+                user.time = now
+
                 self.file_send(formatted_message)
                 command, *args = self.parse_command(requester, message_body)
                 function = commands.get(command)
@@ -355,6 +374,27 @@ class Bot(object):
         self.file_send(end_message)
         self.logger.info(end_message)
         self.app_args.output.close()
+
+
+def parse_message(data):
+    # @debug1
+    self.logger.debug('handling shit')
+    # @task handle input lengths. do not parse input of varied lengths.
+    message = data.split(':', 3)
+    # @debug1
+    self.logger.debug('len(msg)[{0}]\n'.format(len(message)))
+    if len(message) != 3:
+        continue
+    else:
+        message_header = message[1].strip().split(' ', 3)
+        message_body = message[2].strip().split(' ')
+    # @debug2
+    self.logger.debug("header {0}".format(message_header))
+    self.logger.debug("body {0}".format(message_body))
+    if message_header:
+        channel = str(message_header[2])
+        requester = str(message_header[0].split('!', 1)[0])
+    return channel, requester, message_body
 
 
 def configure_logging(app_args):
