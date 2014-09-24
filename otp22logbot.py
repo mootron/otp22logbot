@@ -219,6 +219,12 @@ class Bot(object):
     def flush(self, conn, requester, channel, parameter):
         conn.privmsg(channel, 'Flushing and rotating logfiles...')
 
+    def version(self, conn, requester, channel, parameter):
+        version_string = (
+            "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
+            .format(app_data=self.app_data))
+        conn.privmsg(channel, version_string)
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
@@ -303,10 +309,7 @@ class Bot(object):
                         line = 'Information unavailable for user {0}'.format(parameter)
                     conn.privmsg(channel, line)
                 elif command == '.version':
-                    version_string = (
-                        "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
-                        .format(app_data=self.app_data))
-                    conn.privmsg(channel, version_string)
+                    self.version(conn, requester, channel, parameter)
                 elif channel != self.app_args.channel:
                     if command == '.kill':
                         if self.app_args.kill and parameter == self.app_args.kill:
