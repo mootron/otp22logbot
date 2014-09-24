@@ -262,6 +262,8 @@ class Bot(object):
                          .format(command, parameter, modifier, requester))
         return [command, parameter, modifier]
 
+    def last(self, conn, requester, channel, args):
+        conn.privmsg(channel, conn.last_message)
 
     def loop(self, conn):
         """
@@ -271,9 +273,6 @@ class Bot(object):
         """
         message = ''
         users = {}
-
-        def last(conn, requester, channel, args):
-            conn.privmsg(channel, conn.last_message)
 
         def user(conn, requester, channel, args):
             parameter = args[0] if args else None
@@ -292,7 +291,7 @@ class Bot(object):
             '.help': self.help,
             '.version': self.version,
             '.kill': self.kill,
-            '.last': last,
+            '.last': self.last,
             '.user': user,
             '\x01VERSION\x01': self.version_query,
         }
