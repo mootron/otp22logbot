@@ -103,6 +103,7 @@ class SockSender(object):
 
 class Bot(object):
     def __init__(self, app_args, logger):
+        self.app_data = APP_DATA.copy()
         self.app_args = app_args
         self.logger = logger
 
@@ -121,8 +122,8 @@ class Bot(object):
             [+] using timestamp format {app_data[timeformat]}
             """).strip()
         message = template.format(
-            app_data=APP_DATA, app_args=self.app_args,
-            time=now.strftime(APP_DATA['timeformat']),
+            app_data=self.app_data, app_args=self.app_args,
+            time=now.strftime(self.app_data['timeformat']),
             config_path=self.app_args.init.name if self.app_args.init else None
         )
         self.logger.info(message)
@@ -143,7 +144,7 @@ class Bot(object):
         socksend('JOIN #{app_args.channel}'
                  .format(app_args=self.app_args))
         socksend('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
-                 .format(app_data=APP_DATA))
+                 .format(app_data=self.app_data))
         socksend('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
                  .format(app_args=self.app_args))
         return sock
@@ -160,7 +161,7 @@ class Bot(object):
         message = ''
         users = {}
 
-        while not APP_DATA['kill']:
+        while not self.app_data['kill']:
             now = datetime.utcnow()
             buf = sock.recv(1024).decode('utf-8')
             # @debug1
@@ -190,7 +191,7 @@ class Bot(object):
                 # @task handle regular messages to the channel
                 last_message = message
                 message = '<{0}> {1} ({2}): {3}'.format(
-                    now.strftime(APP_DATA['timeformat']),
+                    now.strftime(self.app_data['timeformat']),
                     requester,
                     channel,
                     message[2]
@@ -240,8 +241,8 @@ class Bot(object):
                     socksend('PRIVMSG {0} :{1}'.format(channel, last_message))
                 elif command == '.user':
                     if parameter in users:
-                        this_time = users[requester]['seen'].strftime(APP_DATA['timeformat_extended'])
-                        user_lastmsg = users[requester]['time'].strftime(APP_DATA['timeformat_extended'])
+                        this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
+                        user_lastmsg = users[requester]['time'].strftime(self.app_data['timeformat_extended'])
                         line = ('User {0} (last seen {1}), (last message {2} -- {3})'
                                 .format(parameter, this_time, user_lastmsg,
                                         users[requester]['message']))
@@ -251,12 +252,12 @@ class Bot(object):
                 elif command == '.version':
                     version_string = (
                         "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
-                        .format(app_data=APP_DATA))
+                        .format(app_data=self.app_data))
                     socksend('PRIVMSG {0} :{1}'.format(channel, version_string))
                 elif channel != self.app_args.channel:
                     if command == '.kill':
                         if parameter == self.app_args.kill:
-                            APP_DATA['kill'] = True
+                            self.app_data['kill'] = True
                             socksend('PRIVMSG {0} :With urgency, my lord. '
                                      'Dying at your request.'.format(requester))
                             socksend('PRIVMSG {0} :Goodbye!'.format(channel))
@@ -266,13 +267,13 @@ class Bot(object):
                     line = (
                         '\x01VERSION OTP22LogBot '
                         'v{app_data[version]}{app_data[phase]}\x01'
-                        .format(app_data=APP_DATA))
+                        .format(app_data=self.app_data))
                     socksend('NOTICE {0} :{1}'.format(requester, line))
 
     def shutdown(self):
         now = datetime.utcnow()
         end_message = ('CONNECTION STOPPED ... dying at {0}\n'
-                       .format(now.strftime(APP_DATA['timeformat'])))
+                       .format(now.strftime(self.app_data['timeformat'])))
         self.file_send(end_message)
         self.logger.info(end_message)
         self.app_args.output.close()
