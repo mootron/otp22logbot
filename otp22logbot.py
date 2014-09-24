@@ -291,23 +291,6 @@ class Bot(object):
         self.app_args.output.close()
 
 
-# @debug
-# ==> outgoing private message
-#:sendak.freenode.net 401 otp22logbot L0j1k: :No such nick/channel
-# ==> inbound channel traffic
-#:L0j1k!~default@unaffiliated/l0j1k PRIVMSG #ircugm :hello
-#:L0j1k!~default@unaffiliated/l0j1k PRIVMSG #ircugm :foo bar
-# ==> inbound private message
-#:L0j1k!~default@unaffiliated/l0j1k PRIVMSG otp22logbot :hello
-#:L0j1k!~default@unaffiliated/l0j1k PRIVMSG otp22logbot :little bunny foo foo
-# ==> user quits
-#:Guest80053!~default@cpe-70-112-152-59.austin.res.rr.com QUIT :Quit: leaving
-# ==> user joins
-#:default!~default@cpe-70-112-152-59.austin.res.rr.com JOIN #ircugm
-# ==> nick change
-#:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
-
-
 def configure_logging(app_args):
     logger = logging.getLogger(__name__)
     if app_args.debug:
