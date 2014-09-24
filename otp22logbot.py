@@ -134,7 +134,23 @@ class Bot(object):
         self.logger.info(message)
 
     def connect(self):
-        sock = None
+        sock = socket.socket()
+        sock.connect((self.app_args.server, self.app_args.port))
+        socksender = SockSender(sock, self.logger)
+        socksend = socksender.send
+
+        # @todo accept a server password
+        # if app_args.password != False:
+        #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
+        socksend('NICK {0}'.format(self.app_args.nick))
+        socksend('USER {app_args.user} {app_args.server} default :{app_args.real}'
+                 .format(app_args=self.app_args))
+        socksend('JOIN #{app_args.channel}'
+                 .format(app_args=self.app_args))
+        socksend('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
+                 .format(app_data=APP_DATA))
+        socksend('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
+                 .format(app_args=self.app_args))
         return sock
 
     def loop(self, sock):
@@ -152,27 +168,6 @@ APP_DATA = {
     'timeformat_extended': '',
     'version': '0.0.4'
 }
-
-def connect(app_args, logger):
-    sock = socket.socket()
-    sock.connect((app_args.server, app_args.port))
-    socksender = SockSender(sock, logger)
-    socksend = socksender.send
-
-    # @todo accept a server password
-    # if app_args.password != False:
-    #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
-    socksend('NICK {0}'.format(app_args.nick))
-    socksend('USER {app_args.user} {app_args.server} default :{app_args.real}'
-             .format(app_args=app_args))
-    socksend('JOIN #{app_args.channel}'
-             .format(app_args=app_args))
-    socksend('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
-             .format(app_data=APP_DATA))
-    socksend('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
-             .format(app_args=app_args))
-    return sock
-
 
 # @debug
 # ==> outgoing private message
@@ -342,7 +337,7 @@ def main():
     logger = configure_logging(app_args)
     bot = Bot(app_args, logger)
     bot.startup()
-    sock = connect(app_args, logger)
+    sock = bot.connect()
     loop(sock, app_args, logger)
     shutdown(app_args, logger)
 
