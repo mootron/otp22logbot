@@ -121,6 +121,12 @@ class Connection(object):
         assert name
         self.send('NICK {0}'.format(name))
 
+    def user(self, username, server, real):
+        assert username
+        assert server
+        assert real
+        self.send('USER {0} {1} default :{2}'.format(username, server, real))
+
     def join(self, channel):
         assert channel.startswith('#'), channel
         self.send('JOIN {0}'.format(channel))
@@ -173,8 +179,7 @@ class Bot(object):
         # if app_args.password != False:
         #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
         conn.nick(self.app_args.nick)
-        send('USER {app_args.user} {app_args.server} default :{app_args.real}'
-             .format(app_args=self.app_args))
+        conn.user(self.app_args.user, self.app_args.server, self.app_args.real)
         conn.join('#' + self.app_args.channel)
         conn.privmsg(
             self.app_data['overlord'],
