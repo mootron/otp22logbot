@@ -290,6 +290,19 @@ class Bot(object):
             requester, channel, content)
         return formatted_message
 
+    def user(self, conn, requester, channel, args):
+        parameter = args[0] if args else None
+        if parameter in self.users:
+            user = self.users[requester]
+            this_time = user.seen.strftime(self.app_data['timeformat_extended'])
+            user_lastmsg = user.time.strftime(self.app_data['timeformat_extended'])
+            line = ('User {0} (last seen {1}), (last message {2} -- {3})'
+                    .format(parameter, this_time, user_lastmsg,
+                            user.message))
+        else:
+            line = 'Information unavailable for user {0}'.format(parameter)
+        conn.privmsg(channel, line)
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
@@ -299,26 +312,13 @@ class Bot(object):
         message = ''
         formatted_message = ''
 
-        def user(conn, requester, channel, args):
-            parameter = args[0] if args else None
-            if parameter in self.users:
-                user = self.users[requester]
-                this_time = user.seen.strftime(self.app_data['timeformat_extended'])
-                user_lastmsg = user.time.strftime(self.app_data['timeformat_extended'])
-                line = ('User {0} (last seen {1}), (last message {2} -- {3})'
-                        .format(parameter, this_time, user_lastmsg,
-                                user.message))
-            else:
-                line = 'Information unavailable for user {0}'.format(parameter)
-            conn.privmsg(channel, line)
-
         commands = {
             '.flush': self.flush,
             '.help': self.help,
             '.version': self.version,
             '.kill': self.kill,
             '.last': self.last,
-            '.user': user,
+            '.user': self.user,
             '\x01VERSION\x01': self.version_query,
         }
 
