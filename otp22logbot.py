@@ -117,6 +117,10 @@ class Connection(object):
         buf = self.socket.recv(size).decode('utf-8')
         return buf
 
+    def nick(self, name):
+        assert name
+        self.send('NICK {0}'.format(name))
+
     def privmsg(self, channel, line):
         assert channel.startswith('#'), channel
         assert line
@@ -164,7 +168,7 @@ class Bot(object):
         # @todo accept a server password
         # if app_args.password != False:
         #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
-        send('NICK {0}'.format(self.app_args.nick))
+        conn.nick(self.app_args.nick)
         send('USER {app_args.user} {app_args.server} default :{app_args.real}'
              .format(app_args=self.app_args))
         send('JOIN #{app_args.channel}'
