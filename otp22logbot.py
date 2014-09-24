@@ -261,15 +261,6 @@ class Bot(object):
                          .format(command, parameter, modifier, requester))
         return [command, parameter, modifier]
 
-    def dispatch(self, conn, requester, channel, command, args):
-        if command == '.flush':
-            self.flush(conn, requester, channel, args)
-        elif command == '.help':
-            self.help(conn, requester, channel, args)
-        elif command == '.version':
-            self.version(conn, requester, channel, args)
-        elif command == '.kill' and channel != self.app_args.channel:
-            self.kill(conn, requester, channel, args)
 
     def loop(self, conn):
         """
@@ -295,6 +286,16 @@ class Bot(object):
             else:
                 line = 'Information unavailable for user {0}'.format(parameter)
             conn.privmsg(channel, line)
+
+        commands = {
+            '.flush': self.flush,
+            '.help': self.help,
+            '.version': self.version,
+            '.kill': self.kill,
+            '.last': last,
+            '.user': user,
+            '\x01VERSION\x01': self.version_query,
+        }
 
         while not self.should_die:
             now = datetime.utcnow()
@@ -342,14 +343,9 @@ class Bot(object):
                 command, *args = self.parse_command(requester, message_body)
                 if not command:
                     continue
-                if command == '.last':
-                    last(conn, requester, channel, args)
-                elif command == '.user':
-                    user(conn, requester, channel, args)
-                elif command == '\x01VERSION\x01':
-                    self.version_query(conn, requester)
-                else:
-                    self.dispatch(conn, requester, channel, command, args)
+                function = commands.get(command)
+                if function:
+                    function(conn, requester, channel, args)
 
     def shutdown(self):
         now = datetime.utcnow()
