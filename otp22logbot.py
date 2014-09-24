@@ -243,9 +243,9 @@ class Bot(object):
         conn.notice(requester, line)
 
     def parse_command(self, requester, message_body):
-        command = False
-        parameter = False
-        modifier = False
+        command = None
+        parameter = None
+        modifier = None
         if message_body:
             command = str(message_body[0])
         if len(message_body) > 1:
