@@ -245,6 +245,8 @@ class Bot(object):
         conn.notice(requester, line)
 
     def parse_command(self, requester, message_body):
+        if len(message_body) > 3:
+            return (None,)
         command = None
         parameter = None
         modifier = None
@@ -327,9 +329,9 @@ class Bot(object):
                     'time': now
                 }
                 self.file_send(message)
-                if len(message_body) > 3:
-                    continue
                 command, *args = self.parse_command(requester, message_body)
+                if not command:
+                    continue
                 if command == '.flush':
                     self.flush(conn, requester, channel, args)
                 elif command == '.help':
