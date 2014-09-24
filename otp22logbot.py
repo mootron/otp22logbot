@@ -349,10 +349,12 @@ def main():
     logger = configure_logging(app_args)
     bot = Bot(app_args, logger)
     bot.startup()
-    sock = bot.connect()
-    bot.handshake(sock)
-    bot.loop(sock)
-    bot.shutdown()
+    try:
+        sock = bot.connect()
+        bot.handshake(sock)
+        bot.loop(sock)
+    finally:
+        bot.shutdown()
 
 
 if __name__ == "__main__":
