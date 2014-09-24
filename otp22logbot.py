@@ -184,6 +184,14 @@ class Bot(object):
             '.user': self.user,
             '\x01VERSION\x01': self.version_query,
         }
+        self.helps = {
+            'flush': ".flush: flush and rotate logfiles",
+            'help': ".help <command>: lists help for a specific command",
+            'kill': ".kill: attempts to kill this bot (good luck)",
+            'last': ".last [user]: displays last message received. if [user] is specified, displays last message sent by user",
+            'user': ".user [user]: displays information about user. if unspecified, defaults to command requester",
+            'version': ".version: displays version information",
+        }
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]\n'.format(data))
@@ -230,20 +238,10 @@ class Bot(object):
 
     def help(self, conn, requester, channel, args):
         parameter = args[0] if args else None
-        if not parameter:
+        if parameter:
+            line = self.helps.get(parameter)
+        if not parameter or not line:
             line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-        elif parameter == 'flush':
-            line = ".flush: flush and rotate logfiles"
-        elif parameter == 'help':
-            line = ".help <command>: lists help for a specific command"
-        elif parameter == 'kill':
-            line = ".kill: attempts to kill this bot (good luck)"
-        elif parameter == 'last':
-            line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
-        elif parameter == 'user':
-            line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
-        elif parameter == 'version':
-            line = ".version: displays version information"
         conn.privmsg(channel, line)
 
     def flush(self, conn, requester, channel, args):
