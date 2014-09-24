@@ -157,7 +157,14 @@ class Bot(object):
         pass
 
     def shutdown(self):
-        pass
+        now = datetime.utcnow()
+        filesender = FileSender(self.app_args.output, self.logger)
+        filesend = filesender.send
+        end_message = ('CONNECTION STOPPED ... dying at {0}\n'
+                       .format(now.strftime(APP_DATA['timeformat'])))
+        filesend(end_message)
+        self.logger.info(end_message)
+        self.app_args.output.close()
 
 
 APP_DATA = {
@@ -304,17 +311,6 @@ def loop(sock, app_args, logger):
                 socksend( 'NOTICE {0} :{1}'.format(requester, line))
 
 
-def shutdown(app_args, logger):
-    now = datetime.utcnow()
-    filesender = FileSender(app_args.output, logger)
-    filesend = filesender.send
-    end_message = ('CONNECTION STOPPED ... dying at {0}\n'
-                   .format(now.strftime(APP_DATA['timeformat'])))
-    filesend(end_message)
-    logger.info(end_message)
-    app_args.output.close()
-
-
 def configure_logging(app_args):
     logger = logging.getLogger(__name__)
     if app_args.debug:
@@ -339,7 +335,7 @@ def main():
     bot.startup()
     sock = bot.connect()
     loop(sock, app_args, logger)
-    shutdown(app_args, logger)
+    bot.shutdown()
 
 
 if __name__ == "__main__":
