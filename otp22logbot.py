@@ -136,6 +136,9 @@ class Connection(object):
         assert line
         self.send('PRIVMSG {0} :{1}'.format(channel, line))
 
+    def pong(self, line):
+        self.send('PONG {0}\n'.format(line))
+
 
 class Bot(object):
     def __init__(self, app_args, logger):
@@ -204,7 +207,7 @@ class Bot(object):
             # @debug1
             self.logger.debug('received {0}'.format(buf))
             if buf.find('PING') != -1:
-                send('PONG {0}\n'.format(buf.split()[1]))
+                conn.pong(buf.split()[1])
             if buf.find('PRIVMSG') != -1:
                 # @debug1
                 self.logger.debug('handling shit')
