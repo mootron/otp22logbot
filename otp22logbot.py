@@ -105,6 +105,7 @@ class Bot(object):
         self.app_data = APP_DATA.copy()
         self.app_args = app_args
         self.logger = logger
+        self.should_die = False
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]\n'.format(data))
@@ -163,7 +164,7 @@ class Bot(object):
         message = ''
         users = {}
 
-        while not self.app_data['kill']:
+        while not self.should_die:
             now = datetime.utcnow()
             buf = sock.recv(1024).decode('utf-8')
             # @debug1
@@ -259,7 +260,7 @@ class Bot(object):
                 elif channel != self.app_args.channel:
                     if command == '.kill':
                         if parameter == self.app_args.kill:
-                            self.app_data['kill'] = True
+                            self.should_die = True
                             socksend('PRIVMSG {0} :With urgency, my lord. '
                                      'Dying at your request.'.format(requester))
                             socksend('PRIVMSG {0} :Goodbye!'.format(channel))
@@ -282,7 +283,6 @@ class Bot(object):
 
 
 APP_DATA = {
-    'kill': False,
     'overlord': 'L0j1k',
     'phase': 'a',
     'timeformat': '%H:%M:%S',
