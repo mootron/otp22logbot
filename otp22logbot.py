@@ -130,9 +130,10 @@ class Bot(object):
     def connect(self):
         sock = socket.socket()
         sock.connect((self.app_args.server, self.app_args.port))
-        socksender = SockSender(sock, self.logger)
-        socksend = socksender.send
+        return sock
 
+    def handshake(self, sock):
+        socksend = SockSender(sock, self.logger).send
         # @todo accept a server password
         # if app_args.password != False:
         #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
@@ -326,6 +327,7 @@ def main():
     bot = Bot(app_args, logger)
     bot.startup()
     sock = bot.connect()
+    bot.handshake(sock)
     bot.loop(sock)
     bot.shutdown()
 
