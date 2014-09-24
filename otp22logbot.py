@@ -154,7 +154,122 @@ class Bot(object):
         return sock
 
     def loop(self, sock):
-        pass
+        filesender = FileSender(self.app_args.output, self.logger)
+        socksender = SockSender(sock, self.logger)
+        filesend = filesender.send
+        socksend = socksender.send
+        last_message = ''
+        message = ''
+        users = {}
+
+        while not APP_DATA['kill']:
+            now = datetime.utcnow()
+            buf = sock.recv(1024).decode('utf-8')
+            # @debug1
+            self.logger.debug('received {0}'.format(buf))
+            if buf.find('PING') != -1:
+                socksend('PONG {0}\n'.format(buf.split()[1]))
+            if buf.find('PRIVMSG') != -1:
+                # @debug1
+                self.logger.debug('handling shit')
+                # @task handle input lengths. do not parse input of varied lengths.
+                message = buf.split(':')
+                # @debug1
+                self.logger.debug('len(msg)[{0}]\n'.format(len(message)))
+                if len(message) != 3:
+                    continue
+                else:
+                    message_header = message[1].strip().split(' ')
+                    message_body = message[2].strip().split(' ')
+                # @debug2
+                print(message_header)
+                print(message_body)
+                if not message_body:
+                    continue
+                if message_header:
+                    channel = str(message_header[2])
+                    requester = str(message_header[0].split('!')[0])
+                # @task handle regular messages to the channel
+                last_message = message
+                message = '<{0}> {1} ({2}): {3}'.format(
+                    now.strftime(APP_DATA['timeformat']),
+                    requester,
+                    channel,
+                    message[2]
+                )
+                users[requester] = {
+                    'altnicks': [],
+                    'channel': channel,
+                    'message': message[2],
+                    'seen': now,
+                    'time': now
+                }
+                filesend(message)
+                if len(message_body) > 3:
+                    continue
+                command = False
+                parameter = False
+                modifier = False
+                if message_body:
+                    command = str(message_body[0])
+                if len(message_body) > 1:
+                    parameter = str(message_body[1])
+                if len(message_body) > 2:
+                    modifier = str(message_body[2])
+                # @debug1
+                self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
+                                 .format(command, parameter, modifier, requester))
+                if command == '.flush':
+                    socksend('PRIVMSG {0} :Flushing and rotating logfiles...'
+                             .format(channel))
+                elif command == '.help':
+                    if not parameter:
+                        line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
+                    elif parameter == 'flush':
+                        line = ".flush: flush and rotate logfiles"
+                    elif parameter == 'help':
+                        line = ".help <command>: lists help for a specific command"
+                    elif parameter == 'kill':
+                        line = ".kill: attempts to kill this bot (good luck)"
+                    elif parameter == 'last':
+                        line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
+                    elif parameter == 'user':
+                        line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
+                    elif parameter == 'version':
+                        line = ".version: displays version information"
+                    socksend('PRIVMSG {0} :{1}'.format(channel, line))
+                elif command == '.last':
+                    socksend('PRIVMSG {0} :{1}'.format(channel, last_message))
+                elif command == '.user':
+                    if parameter in users:
+                        this_time = users[requester]['seen'].strftime(APP_DATA['timeformat_extended'])
+                        user_lastmsg = users[requester]['time'].strftime(APP_DATA['timeformat_extended'])
+                        line = ('User {0} (last seen {1}), (last message {2} -- {3})'
+                                .format(parameter, this_time, user_lastmsg,
+                                        users[requester]['message']))
+                    else:
+                        line = 'Information unavailable for user {0}'.format(parameter)
+                    socksend('PRIVMSG {0} :{1}'.format(channel, line))
+                elif command == '.version':
+                    version_string = (
+                        "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
+                        .format(app_data=APP_DATA))
+                    socksend('PRIVMSG {0} :{1}'.format(channel, version_string))
+                elif channel != self.app_args.channel:
+                    if command == '.kill':
+                        if parameter == self.app_args.kill:
+                            APP_DATA['kill'] = True
+                            socksend('PRIVMSG {0} :With urgency, my lord. '
+                                     'Dying at your request.'.format(requester))
+                            socksend('PRIVMSG {0} :Goodbye!'.format(channel))
+                            socksend('QUIT :killed by {0}'.format(requester))
+                elif command == '\x01VERSION\x01':
+                    # @task respond to CTCP VERSION
+                    line = (
+                        '\x01VERSION OTP22LogBot '
+                        'v{app_data[version]}{app_data[phase]}\x01'
+                        .format(app_data=APP_DATA))
+                    socksend('NOTICE {0} :{1}'.format(requester, line))
 
     def shutdown(self):
         now = datetime.utcnow()
@@ -192,124 +307,6 @@ APP_DATA = {
 # ==> nick change
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
 
-def loop(sock, app_args, logger):
-    filesender = FileSender(app_args.output, logger)
-    socksender = SockSender(sock, logger)
-    filesend = filesender.send
-    socksend = socksender.send
-    last_message = ''
-    message = ''
-    users = {}
-
-    while not APP_DATA['kill']:
-        now = datetime.utcnow()
-        buf = sock.recv(1024).decode('utf-8')
-        # @debug1
-        logger.debug('received {0}'.format(buf))
-        if buf.find('PING') != -1:
-            socksend('PONG {0}\n'.format(buf.split()[1]))
-        if buf.find('PRIVMSG') != -1:
-            # @debug1
-            logger.debug('handling shit')
-            # @task handle input lengths. do not parse input of varied lengths.
-            message = buf.split(':')
-            # @debug1
-            logger.debug('len(msg)[{0}]\n'.format(len(message)))
-            if len(message) != 3:
-                continue
-            else:
-                message_header = message[1].strip().split(' ')
-                message_body = message[2].strip().split(' ')
-            # @debug2
-            print(message_header)
-            print(message_body)
-            if not message_body:
-                continue
-            if message_header:
-                channel = str(message_header[2])
-                requester = str(message_header[0].split('!')[0])
-            # @task handle regular messages to the channel
-            last_message = message
-            message = '<{0}> {1} ({2}): {3}'.format(
-                now.strftime(APP_DATA['timeformat']),
-                requester,
-                channel,
-                message[2]
-            )
-            users[requester] = {
-                'altnicks': [],
-                'channel': channel,
-                'message': message[2],
-                'seen': now,
-                'time': now
-            }
-            filesend(message)
-            if len(message_body) > 3:
-                continue
-            command = False
-            parameter = False
-            modifier = False
-            if message_body:
-                command = str(message_body[0])
-            if len(message_body) > 1:
-                parameter = str(message_body[1])
-            if len(message_body) > 2:
-                modifier = str(message_body[2])
-            # @debug1
-            logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
-                     .format(command, parameter, modifier, requester))
-            if command == '.flush':
-                socksend('PRIVMSG {0} :Flushing and rotating logfiles...'
-                         .format(channel))
-            elif command == '.help':
-                if not parameter:
-                    line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-                elif parameter == 'flush':
-                    line = ".flush: flush and rotate logfiles"
-                elif parameter == 'help':
-                    line = ".help <command>: lists help for a specific command"
-                elif parameter == 'kill':
-                    line = ".kill: attempts to kill this bot (good luck)"
-                elif parameter == 'last':
-                    line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
-                elif parameter == 'user':
-                    line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
-                elif parameter == 'version':
-                    line = ".version: displays version information"
-                socksend('PRIVMSG {0} :{1}'.format(channel, line))
-            elif command == '.last':
-                socksend('PRIVMSG {0} :{1}'.format(channel, last_message))
-            elif command == '.user':
-                if parameter in users:
-                    this_time = users[requester]['seen'].strftime(APP_DATA['timeformat_extended'])
-                    user_lastmsg = users[requester]['time'].strftime(APP_DATA['timeformat_extended'])
-                    line = ('User {0} (last seen {1}), (last message {2} -- {3})'
-                            .format(parameter, this_time, user_lastmsg,
-                                    users[requester]['message']))
-                else:
-                    line = 'Information unavailable for user {0}'.format(parameter)
-                socksend('PRIVMSG {0} :{1}'.format(channel, line))
-            elif command == '.version':
-                version_string = (
-                    "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
-                    .format(app_data=APP_DATA))
-                socksend('PRIVMSG {0} :{1}'.format(channel, version_string))
-            elif channel != app_args.channel:
-                if command == '.kill':
-                    if parameter == app_args.kill:
-                        APP_DATA['kill'] = True
-                        socksend('PRIVMSG {0} :With urgency, my lord. '
-                                 'Dying at your request.'.format(requester))
-                        socksend('PRIVMSG {0} :Goodbye!'.format(channel))
-                        socksend('QUIT :killed by {0}'.format(requester))
-            elif command == '\x01VERSION\x01':
-                # @task respond to CTCP VERSION
-                line = (
-                    '\x01VERSION OTP22LogBot '
-                    'v{app_data[version]}{app_data[phase]}\x01'
-                    .format(app_data=APP_DATA))
-                socksend( 'NOTICE {0} :{1}'.format(requester, line))
-
 
 def configure_logging(app_args):
     logger = logging.getLogger(__name__)
@@ -334,7 +331,7 @@ def main():
     bot = Bot(app_args, logger)
     bot.startup()
     sock = bot.connect()
-    loop(sock, app_args, logger)
+    bot.loop(sock)
     bot.shutdown()
 
 
