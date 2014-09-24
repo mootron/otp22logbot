@@ -167,8 +167,7 @@ class Bot(object):
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
-        socksender = SockSender(sock, self.logger)
-        socksend = socksender.send
+        socksend = SockSender(sock, self.logger).send
         last_message = ''
         message = ''
         users = {}
