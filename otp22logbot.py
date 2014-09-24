@@ -159,7 +159,6 @@ class Bot(object):
                  .format(app_data=self.app_data))
         socksend('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
                  .format(app_args=self.app_args))
-        return sock
 
     def loop(self, sock):
         """
