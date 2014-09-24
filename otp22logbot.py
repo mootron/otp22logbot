@@ -225,6 +225,15 @@ class Bot(object):
             .format(app_data=self.app_data))
         conn.privmsg(channel, version_string)
 
+    def kill(self, conn, requester, channel, parameter):
+        if self.app_args.kill and parameter == self.app_args.kill:
+            self.should_die = True
+            conn.privmsg(
+                requester,
+                'With urgency, my lord. Dying at your request.')
+            conn.privmsg(channel, 'Goodbye!')
+            conn.quit('killed by {0}'.format(requester))
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
@@ -310,15 +319,8 @@ class Bot(object):
                     conn.privmsg(channel, line)
                 elif command == '.version':
                     self.version(conn, requester, channel, parameter)
-                elif channel != self.app_args.channel:
-                    if command == '.kill':
-                        if self.app_args.kill and parameter == self.app_args.kill:
-                            self.should_die = True
-                            conn.privmsg(
-                                requester,
-                                'With urgency, my lord. Dying at your request.')
-                            conn.privmsg(channel, 'Goodbye!')
-                            conn.quit('killed by {0}'.format(requester))
+                elif command == '.kill' and channel != self.app_args.channel:
+                    self.kill(conn, requester, channel, parameter)
                 elif command == '\x01VERSION\x01':
                     # @task respond to CTCP VERSION
                     line = (
