@@ -121,6 +121,10 @@ class Connection(object):
         assert name
         self.send('NICK {0}'.format(name))
 
+    def join(self, channel):
+        assert channel.startswith('#'), channel
+        self.send('JOIN {0}'.format(channel))
+
     def privmsg(self, channel, line):
         assert channel.startswith('#'), channel
         assert line
@@ -171,8 +175,7 @@ class Bot(object):
         conn.nick(self.app_args.nick)
         send('USER {app_args.user} {app_args.server} default :{app_args.real}'
              .format(app_args=self.app_args))
-        send('JOIN #{app_args.channel}'
-             .format(app_args=self.app_args))
+        conn.join('#' + self.app_args.channel)
         conn.privmsg(
             self.app_data['overlord'],
             'Greetings, overlord. I am for you.')
