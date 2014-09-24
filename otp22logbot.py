@@ -272,6 +272,7 @@ class Bot(object):
         2. We may want the same instance of Bot to serve multiple sockets.
         """
         message = ''
+        formatted_message = ''
         users = {}
 
         def user(conn, requester, channel, args):
@@ -324,8 +325,8 @@ class Bot(object):
                     channel = str(message_header[2])
                     requester = str(message_header[0].split('!')[0])
                 # @task handle regular messages to the channel
-                conn.last_message = message
-                message = '<{0}> {1} ({2}): {3}'.format(
+                conn.last_message = formatted_message
+                formatted_message = '<{0}> {1} ({2}): {3}'.format(
                     now.strftime(self.app_data['timeformat']),
                     requester,
                     channel,
@@ -338,7 +339,7 @@ class Bot(object):
                     'seen': now,
                     'time': now
                 }
-                self.file_send(message)
+                self.file_send(formatted_message)
                 command, *args = self.parse_command(requester, message_body)
                 function = commands.get(command)
                 if function:
