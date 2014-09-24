@@ -302,9 +302,9 @@ class Bot(object):
             buf = conn.recv(1024)
             # @debug1
             self.logger.debug('received {0}'.format(buf))
-            if buf.find('PING') != -1:
+            if 'PING' in buf:
                 conn.pong(buf.split()[1])
-            if buf.find('PRIVMSG') != -1:
+            if 'PRIVMSG' in buf:
                 # @debug1
                 self.logger.debug('handling shit')
                 # @task handle input lengths. do not parse input of varied lengths.
