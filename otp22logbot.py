@@ -109,10 +109,11 @@ class User(object):
         self.seen = None
         self.time = None
 
-    def update(self, channel, message, time):
+    def update(self, channel, message, now=None):
+        now = now or datetime.utcnow()
         self.channels.add(channel)
         self.message = message
-        self.seen = time
+        self.seen = now
         self.time = now
 
 
@@ -361,10 +362,7 @@ class Bot(object):
                     requester, channel, message[2])
 
                 user = self.get_user(requester)
-                user.channels.add(channel)
-                user.message = message[2]
-                user.seen = now
-                user.time = now
+                user.update(channel, message[2])
 
                 self.file_send(formatted_message)
                 command, *args = self.parse_command(requester, message_body)
@@ -400,6 +398,7 @@ def parse_message(data):
         channel = str(message_header[2])
         requester = str(message_header[0].split('!', 1)[0])
     return channel, requester, message_body
+
 
 
 def configure_logging(app_args):
