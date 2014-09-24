@@ -111,6 +111,25 @@ class SockSender(object):
         self.socket.send((data + '\r\n').encode('utf-8'))
 
 
+class Bot(object):
+    def __init__(self, app_args, logger):
+        self.app_args = app_args
+        self.logger = logger
+
+    def startup(self):
+        pass
+
+    def connect(self):
+        sock = None
+        return sock
+
+    def loop(self, sock):
+        pass
+
+    def shutdown(self):
+        pass
+
+
 APP_DATA = {
     'kill': False,
     'overlord': 'L0j1k',
