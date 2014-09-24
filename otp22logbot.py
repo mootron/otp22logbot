@@ -44,8 +44,8 @@ def make_parser():
     )
     parser.add_argument(
         '-k', '--kill',
-        help='Kill password to stop bot. Default "killme"',
-        default='killme',
+        help='Kill password to stop bot from IRC.',
+        default=None,
         nargs='?',
         type=str
     )
@@ -303,7 +303,7 @@ class Bot(object):
                     conn.privmsg(channel, version_string)
                 elif channel != self.app_args.channel:
                     if command == '.kill':
-                        if parameter == self.app_args.kill:
+                        if self.app_args.kill and parameter == self.app_args.kill:
                             self.should_die = True
                             conn.privmsg(
                                 requester,
