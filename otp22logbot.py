@@ -11,6 +11,7 @@ This is the primary application driver file.
 @version 0.0.4a
 """
 import argparse
+import logging
 from datetime import datetime
 import textwrap
 import socket
@@ -294,9 +295,23 @@ def shutdown(app_args):
     app_args.output.close()
 
 
+def configure_logging(app_args):
+    logger = logging.getLogger(__name__)
+    logger.setLevel(logging.DEBUG)
+    console_formatter = logging.Formatter(
+        fmt="[+] %(message)s",
+    )
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setFormatter(console_formatter)
+    logger.addHandler(console_handler)
+
+    return logger
+
+
 def main():
     parser = make_parser()
     app_args = parser.parse_args()
+    logger = configure_logging(app_args)
     startup(app_args)
     sock = connect(app_args)
     loop(sock, app_args)
