@@ -108,6 +108,7 @@ class Connection(object):
     def __init__(self, socket, logger):
         self.socket = socket
         self.logger = logger
+        self.last_message = None
 
     def send(self, data):
         self.logger.debug('=SENDING=>[{0}]\n'.format(data))
@@ -268,12 +269,11 @@ class Bot(object):
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
-        last_message = ''
         message = ''
         users = {}
 
         def last(conn, requester, channel, args):
-            conn.privmsg(channel, last_message)
+            conn.privmsg(channel, conn.last_message)
 
         def user(conn, requester, channel, args):
             parameter = args[0] if args else None
@@ -325,7 +325,7 @@ class Bot(object):
                     channel = str(message_header[2])
                     requester = str(message_header[0].split('!')[0])
                 # @task handle regular messages to the channel
-                last_message = message
+                conn.last_message = message
                 message = '<{0}> {1} ({2}): {3}'.format(
                     now.strftime(self.app_data['timeformat']),
                     requester,
