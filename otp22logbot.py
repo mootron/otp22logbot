@@ -216,6 +216,9 @@ class Bot(object):
             line = ".version: displays version information"
         conn.privmsg(channel, line)
 
+    def flush(self, conn, requester, channel, parameter):
+        conn.privmsg(channel, 'Flushing and rotating logfiles...')
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
@@ -284,7 +287,7 @@ class Bot(object):
                 self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
                                  .format(command, parameter, modifier, requester))
                 if command == '.flush':
-                    conn.privmsg(channel, 'Flushing and rotating logfiles...')
+                    self.flush(conn, requester, channel, parameter)
                 elif command == '.help':
                     self.help(conn, requester, channel, parameter)
                 elif command == '.last':
