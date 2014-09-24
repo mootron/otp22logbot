@@ -199,6 +199,23 @@ class Bot(object):
             '#' + self.app_args.channel,
             'I am a logbot and I am ready! Use ".help" for help.')
 
+    def help(self, conn, requester, channel, parameter):
+        if not parameter:
+            line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
+        elif parameter == 'flush':
+            line = ".flush: flush and rotate logfiles"
+        elif parameter == 'help':
+            line = ".help <command>: lists help for a specific command"
+        elif parameter == 'kill':
+            line = ".kill: attempts to kill this bot (good luck)"
+        elif parameter == 'last':
+            line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
+        elif parameter == 'user':
+            line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
+        elif parameter == 'version':
+            line = ".version: displays version information"
+        conn.privmsg(channel, line)
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
@@ -269,21 +286,7 @@ class Bot(object):
                 if command == '.flush':
                     conn.privmsg(channel, 'Flushing and rotating logfiles...')
                 elif command == '.help':
-                    if not parameter:
-                        line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-                    elif parameter == 'flush':
-                        line = ".flush: flush and rotate logfiles"
-                    elif parameter == 'help':
-                        line = ".help <command>: lists help for a specific command"
-                    elif parameter == 'kill':
-                        line = ".kill: attempts to kill this bot (good luck)"
-                    elif parameter == 'last':
-                        line = ".last [user]: displays last message received. if [user] is specified, displays last message sent by user"
-                    elif parameter == 'user':
-                        line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
-                    elif parameter == 'version':
-                        line = ".version: displays version information"
-                    conn.privmsg(channel, line)
+                    self.help(conn, requester, channel, parameter)
                 elif command == '.last':
                     conn.privmsg(channel, last_message)
                 elif command == '.user':
