@@ -344,6 +344,7 @@ def main():
     parser = make_parser()
     app_args = parser.parse_args()
     logger = configure_logging(app_args)
+    bot = Bot(app_args, logger)
     startup(app_args, logger)
     sock = connect(app_args, logger)
     loop(sock, app_args, logger)
