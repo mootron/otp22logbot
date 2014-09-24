@@ -139,6 +139,9 @@ class Connection(object):
     def pong(self, line):
         self.send('PONG {0}\n'.format(line))
 
+    def quit(self, line):
+        self.send('QUIT :{0}'.format(line))
+
 
 class Bot(object):
     def __init__(self, app_args, logger):
@@ -301,7 +304,7 @@ class Bot(object):
                                 requester,
                                 'With urgency, my lord. Dying at your request.')
                             conn.privmsg(channel, 'Goodbye!')
-                            send('QUIT :killed by {0}'.format(requester))
+                            conn.quit('killed by {0}'.format(requester))
                 elif command == '\x01VERSION\x01':
                     # @task respond to CTCP VERSION
                     line = (
