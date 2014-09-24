@@ -234,6 +234,21 @@ class Bot(object):
             conn.privmsg(channel, 'Goodbye!')
             conn.quit('killed by {0}'.format(requester))
 
+    def parse_command(self, requester, message_body):
+        command = False
+        parameter = False
+        modifier = False
+        if message_body:
+            command = str(message_body[0])
+        if len(message_body) > 1:
+            parameter = str(message_body[1])
+        if len(message_body) > 2:
+            modifier = str(message_body[2])
+        # @debug1
+        self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
+                         .format(command, parameter, modifier, requester))
+        return [command, parameter, modifier]
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
@@ -303,18 +318,7 @@ class Bot(object):
                 self.file_send(message)
                 if len(message_body) > 3:
                     continue
-                command = False
-                parameter = False
-                modifier = False
-                if message_body:
-                    command = str(message_body[0])
-                if len(message_body) > 1:
-                    parameter = str(message_body[1])
-                if len(message_body) > 2:
-                    modifier = str(message_body[2])
-                # @debug1
-                self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
-                                 .format(command, parameter, modifier, requester))
+                command, parameter, modifier = self.parse_command(requester, message_body)
                 if command == '.flush':
                     self.flush(conn, requester, channel, parameter)
                 elif command == '.help':
