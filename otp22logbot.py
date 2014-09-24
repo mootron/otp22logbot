@@ -285,11 +285,12 @@ class Bot(object):
         def user(conn, requester, channel, args):
             parameter = args[0] if args else None
             if parameter in users:
-                this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
-                user_lastmsg = users[requester]['time'].strftime(self.app_data['timeformat_extended'])
+                user = users[requester]
+                this_time = user['seen'].strftime(self.app_data['timeformat_extended'])
+                user_lastmsg = user['time'].strftime(self.app_data['timeformat_extended'])
                 line = ('User {0} (last seen {1}), (last message {2} -- {3})'
                         .format(parameter, this_time, user_lastmsg,
-                                users[requester]['message']))
+                                user['message']))
             else:
                 line = 'Information unavailable for user {0}'.format(parameter)
             conn.privmsg(channel, line)
