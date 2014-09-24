@@ -245,6 +245,9 @@ class Bot(object):
             .format(app_data=self.app_data))
         conn.notice(requester, line)
 
+    def last(self, conn, requester, channel, args):
+        conn.privmsg(channel, conn.last_message)
+
     def parse_command(self, requester, message_body):
         if len(message_body) > 3:
             return (None,)
@@ -262,8 +265,6 @@ class Bot(object):
                          .format(command, parameter, modifier, requester))
         return [command, parameter, modifier]
 
-    def last(self, conn, requester, channel, args):
-        conn.privmsg(channel, conn.last_message)
 
     def loop(self, conn):
         """
