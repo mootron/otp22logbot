@@ -337,25 +337,7 @@ class Bot(object):
             if 'PING' in received:
                 conn.pong(received.split()[1])
             if 'PRIVMSG' in received:
-                # @debug1
-                self.logger.debug('handling shit')
-                # @task handle input lengths. do not parse input of varied lengths.
-                message = received.split(':')
-                # @debug1
-                self.logger.debug('len(msg)[{0}]\n'.format(len(message)))
-                if len(message) != 3:
-                    continue
-                else:
-                    message_header = message[1].strip().split(' ')
-                    message_body = message[2].strip().split(' ')
-                # @debug2
-                self.logger.debug("header {0}".format(message_header))
-                self.logger.debug("body {0}".format(message_body))
-                if not message_body:
-                    continue
-                if message_header:
-                    channel = str(message_header[2])
-                    requester = str(message_header[0].split('!')[0])
+                channel, requester = parse_message(received)
                 # @task handle regular messages to the channel
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
@@ -398,7 +380,6 @@ def parse_message(data):
         channel = str(message_header[2])
         requester = str(message_header[0].split('!', 1)[0])
     return channel, requester, message_body
-
 
 
 def configure_logging(app_args):
