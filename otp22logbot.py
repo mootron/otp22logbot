@@ -117,6 +117,11 @@ class Connection(object):
         buf = self.socket.recv(size).decode('utf-8')
         return buf
 
+    def privmsg(self, channel, line):
+        assert channel.startswith('#'), channel
+        assert line
+        self.send('PRIVMSG {0} :{1}'.format(channel, line))
+
 
 class Bot(object):
     def __init__(self, app_args, logger):
@@ -164,10 +169,12 @@ class Bot(object):
              .format(app_args=self.app_args))
         send('JOIN #{app_args.channel}'
              .format(app_args=self.app_args))
-        send('PRIVMSG {app_data[overlord]} :Greetings, overlord. I am for you.'
-             .format(app_data=self.app_data))
-        send('PRIVMSG #{app_args.channel} :I am a logbot and I am ready! Use ".help" for help.'
-             .format(app_args=self.app_args))
+        conn.privmsg(
+            self.app_data['overlord'],
+            'Greetings, overlord. I am for you.')
+        conn.privmsg(
+            '#' + self.app_args.channel,
+            'I am a logbot and I am ready! Use ".help" for help.')
 
     def loop(self, conn):
         """
@@ -238,8 +245,7 @@ class Bot(object):
                 self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
                                  .format(command, parameter, modifier, requester))
                 if command == '.flush':
-                    send('PRIVMSG {0} :Flushing and rotating logfiles...'
-                             .format(channel))
+                    conn.privmsg(channel, 'Flushing and rotating logfiles...')
                 elif command == '.help':
                     if not parameter:
                         line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
@@ -255,9 +261,9 @@ class Bot(object):
                         line = ".user [user]: displays information about user. if unspecified, defaults to command requester"
                     elif parameter == 'version':
                         line = ".version: displays version information"
-                    send('PRIVMSG {0} :{1}'.format(channel, line))
+                    conn.privmsg(channel, line)
                 elif command == '.last':
-                    send('PRIVMSG {0} :{1}'.format(channel, last_message))
+                    conn.privmsg(channel, last_message)
                 elif command == '.user':
                     if parameter in users:
                         this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
@@ -267,19 +273,20 @@ class Bot(object):
                                         users[requester]['message']))
                     else:
                         line = 'Information unavailable for user {0}'.format(parameter)
-                    send('PRIVMSG {0} :{1}'.format(channel, line))
+                    conn.privmsg(channel, line)
                 elif command == '.version':
                     version_string = (
                         "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
                         .format(app_data=self.app_data))
-                    send('PRIVMSG {0} :{1}'.format(channel, version_string))
+                    conn.privmsg(channel, version_string)
                 elif channel != self.app_args.channel:
                     if command == '.kill':
                         if parameter == self.app_args.kill:
                             self.should_die = True
-                            send('PRIVMSG {0} :With urgency, my lord. '
-                                 'Dying at your request.'.format(requester))
-                            send('PRIVMSG {0} :Goodbye!'.format(channel))
+                            conn.privmsg(
+                                requester,
+                                'With urgency, my lord. Dying at your request.')
+                            conn.privmsg(channel, 'Goodbye!')
                             send('QUIT :killed by {0}'.format(requester))
                 elif command == '\x01VERSION\x01':
                     # @task respond to CTCP VERSION
