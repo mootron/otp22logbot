@@ -91,16 +91,6 @@ def make_parser():
     return parser
 
 
-class FileSender(object):
-    def __init__(self, handle, logger):
-        self.handle = handle
-        self.logger = logger
-
-    def send(self, data):
-        self.logger.debug('=WRITING=>[{0}]\n'.format(data))
-        self.handle.write(str(data))
-
-
 class SockSender(object):
     def __init__(self, socket, logger):
         self.socket = socket
@@ -115,6 +105,10 @@ class Bot(object):
     def __init__(self, app_args, logger):
         self.app_args = app_args
         self.logger = logger
+
+    def file_send(self, data):
+        self.logger.debug('=WRITING=>[{0}]\n'.format(data))
+        self.app_args.output.write(str(data))
 
     def startup(self):
         now = datetime.utcnow()
@@ -154,9 +148,7 @@ class Bot(object):
         return sock
 
     def loop(self, sock):
-        filesender = FileSender(self.app_args.output, self.logger)
         socksender = SockSender(sock, self.logger)
-        filesend = filesender.send
         socksend = socksender.send
         last_message = ''
         message = ''
@@ -204,7 +196,7 @@ class Bot(object):
                     'seen': now,
                     'time': now
                 }
-                filesend(message)
+                self.file_send(message)
                 if len(message_body) > 3:
                     continue
                 command = False
@@ -273,11 +265,9 @@ class Bot(object):
 
     def shutdown(self):
         now = datetime.utcnow()
-        filesender = FileSender(self.app_args.output, self.logger)
-        filesend = filesender.send
         end_message = ('CONNECTION STOPPED ... dying at {0}\n'
                        .format(now.strftime(APP_DATA['timeformat'])))
-        filesend(end_message)
+        self.file_send(end_message)
         self.logger.info(end_message)
         self.app_args.output.close()
 
