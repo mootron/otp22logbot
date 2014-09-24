@@ -192,8 +192,8 @@ class Bot(object):
                     message_header = message[1].strip().split(' ')
                     message_body = message[2].strip().split(' ')
                 # @debug2
-                print(message_header)
-                print(message_body)
+                self.logger.debug("header {0}".format(message_header))
+                self.logger.debug("body {0}".format(message_body))
                 if not message_body:
                     continue
                 if message_header:
