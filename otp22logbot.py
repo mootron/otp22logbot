@@ -265,6 +265,12 @@ class Bot(object):
                          .format(command, parameter, modifier, requester))
         return [command, parameter, modifier]
 
+    def format_message(self, requester, channel, content):
+        now = datetime.utcnow()
+        formatted_message = '<{0}> {1} ({2}): {3}'.format(
+            now.strftime(self.app_data['timeformat']),
+            requester, channel, content)
+        return formatted_message
 
     def loop(self, conn):
         """
@@ -299,7 +305,6 @@ class Bot(object):
         }
 
         while not self.should_die:
-            now = datetime.utcnow()
             received = conn.recv(1024)
             # @debug1
             self.logger.debug('received {0}'.format(received))
@@ -327,12 +332,8 @@ class Bot(object):
                     requester = str(message_header[0].split('!')[0])
                 # @task handle regular messages to the channel
                 conn.last_message = formatted_message
-                formatted_message = '<{0}> {1} ({2}): {3}'.format(
-                    now.strftime(self.app_data['timeformat']),
-                    requester,
-                    channel,
-                    message[2]
-                )
+                formatted_message = self.format_message(
+                    requester, channel, message[2])
                 users[requester] = {
                     'altnicks': [],
                     'channel': channel,
