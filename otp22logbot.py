@@ -13,7 +13,6 @@ This is the primary application driver file.
 import argparse
 import logging
 from datetime import datetime
-import textwrap
 import socket
 import sys
 
@@ -112,21 +111,24 @@ class Bot(object):
         self.app_args.output.write(str(data))
 
     def startup(self):
-        now = datetime.utcnow()
-        template = textwrap.dedent("""
-            otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n
-            [+] started at {time}
-            [+] using configuration file: {config_path}
-            [+] using output logfile {app_args.output.name}
-            [+] using server {app_args.server} on port {app_args.port}
-            [+] using timestamp format {app_data[timeformat]}
-            """).strip()
-        message = template.format(
-            app_data=self.app_data, app_args=self.app_args,
-            time=now.strftime(self.app_data['timeformat']),
-            config_path=self.app_args.init.name if self.app_args.init else None
-        )
-        self.logger.info(message)
+        info = self.logger.info
+        info("otp22logbot.py {0[version]}{0[phase]} by L0j1k".format(self.app_data))
+
+        now = datetime.utcnow().strftime(APP_DATA['timeformat'])
+        info("started at {0}".format(now))
+
+        config_path = self.app_args.init.name if self.app_args.init else None
+        info("using configuration file: {0}".format(config_path))
+
+        output_name = self.app_args.output.name
+        info("using output logfile {0}".format(output_name))
+
+        server = self.app_args.server
+        port = self.app_args.port
+        info("using server {0} on port {1}".format(server, port))
+
+        timeformat = self.app_data["timeformat"]
+        info("using timestamp format {0}".format(timeformat))
 
     def connect(self):
         sock = socket.socket()
