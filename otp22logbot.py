@@ -234,6 +234,14 @@ class Bot(object):
             conn.privmsg(channel, 'Goodbye!')
             conn.quit('killed by {0}'.format(requester))
 
+    def version_query(self, conn, requester, channel, args):
+        # @task respond to CTCP VERSION
+        line = (
+            '\x01VERSION OTP22LogBot '
+            'v{app_data[version]}{app_data[phase]}\x01'
+            .format(app_data=self.app_data))
+        conn.notice(requester, line)
+
     def parse_command(self, requester, message_body):
         command = False
         parameter = False
@@ -332,12 +340,7 @@ class Bot(object):
                 elif command == '.kill' and channel != self.app_args.channel:
                     self.kill(conn, requester, channel, parameter)
                 elif command == '\x01VERSION\x01':
-                    # @task respond to CTCP VERSION
-                    line = (
-                        '\x01VERSION OTP22LogBot '
-                        'v{app_data[version]}{app_data[phase]}\x01'
-                        .format(app_data=self.app_data))
-                    conn.notice(requester, line)
+                    self.version_query(conn, requester)
 
     def shutdown(self):
         now = datetime.utcnow()
