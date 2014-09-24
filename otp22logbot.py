@@ -17,6 +17,15 @@ import socket
 import sys
 
 
+APP_DATA = {
+    'overlord': 'L0j1k',
+    'phase': 'a',
+    'timeformat': '%H:%M:%S',
+    'timeformat_extended': '',
+    'version': '0.0.4'
+}
+
+
 def make_parser():
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -281,14 +290,6 @@ class Bot(object):
         self.logger.info(end_message)
         self.app_args.output.close()
 
-
-APP_DATA = {
-    'overlord': 'L0j1k',
-    'phase': 'a',
-    'timeformat': '%H:%M:%S',
-    'timeformat_extended': '',
-    'version': '0.0.4'
-}
 
 # @debug
 # ==> outgoing private message
