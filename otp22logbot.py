@@ -199,7 +199,8 @@ class Bot(object):
             '#' + self.app_args.channel,
             'I am a logbot and I am ready! Use ".help" for help.')
 
-    def help(self, conn, requester, channel, parameter):
+    def help(self, conn, requester, channel, args):
+        parameter = args[0] if args else None
         if not parameter:
             line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
         elif parameter == 'flush':
@@ -216,16 +217,17 @@ class Bot(object):
             line = ".version: displays version information"
         conn.privmsg(channel, line)
 
-    def flush(self, conn, requester, channel, parameter):
+    def flush(self, conn, requester, channel, args):
         conn.privmsg(channel, 'Flushing and rotating logfiles...')
 
-    def version(self, conn, requester, channel, parameter):
+    def version(self, conn, requester, channel, args):
         version_string = (
             "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
             .format(app_data=self.app_data))
         conn.privmsg(channel, version_string)
 
-    def kill(self, conn, requester, channel, parameter):
+    def kill(self, conn, requester, channel, args):
+        parameter = args[0] if args else None
         if self.app_args.kill and parameter == self.app_args.kill:
             self.should_die = True
             conn.privmsg(
@@ -267,10 +269,11 @@ class Bot(object):
         message = ''
         users = {}
 
-        def last(conn, requester, channel, parameter):
+        def last(conn, requester, channel, args):
             conn.privmsg(channel, last_message)
 
-        def user(conn, requester, channel, parameter):
+        def user(conn, requester, channel, args):
+            parameter = args[0] if args else None
             if parameter in users:
                 this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
                 user_lastmsg = users[requester]['time'].strftime(self.app_data['timeformat_extended'])
@@ -326,19 +329,19 @@ class Bot(object):
                 self.file_send(message)
                 if len(message_body) > 3:
                     continue
-                command, parameter, modifier = self.parse_command(requester, message_body)
+                command, *args = self.parse_command(requester, message_body)
                 if command == '.flush':
-                    self.flush(conn, requester, channel, parameter)
+                    self.flush(conn, requester, channel, args)
                 elif command == '.help':
-                    self.help(conn, requester, channel, parameter)
+                    self.help(conn, requester, channel, args)
                 elif command == '.last':
-                    last(conn, requester, channel, parameter)
+                    last(conn, requester, channel, args)
                 elif command == '.user':
-                    user(conn, requester, channel, parameter)
+                    user(conn, requester, channel, args)
                 elif command == '.version':
-                    self.version(conn, requester, channel, parameter)
+                    self.version(conn, requester, channel, args)
                 elif command == '.kill' and channel != self.app_args.channel:
-                    self.kill(conn, requester, channel, parameter)
+                    self.kill(conn, requester, channel, args)
                 elif command == '\x01VERSION\x01':
                     self.version_query(conn, requester)
 
