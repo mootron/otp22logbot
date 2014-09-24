@@ -299,16 +299,16 @@ class Bot(object):
 
         while not self.should_die:
             now = datetime.utcnow()
-            buf = conn.recv(1024)
+            received = conn.recv(1024)
             # @debug1
-            self.logger.debug('received {0}'.format(buf))
-            if 'PING' in buf:
-                conn.pong(buf.split()[1])
-            if 'PRIVMSG' in buf:
+            self.logger.debug('received {0}'.format(received))
+            if 'PING' in received:
+                conn.pong(received.split()[1])
+            if 'PRIVMSG' in received:
                 # @debug1
                 self.logger.debug('handling shit')
                 # @task handle input lengths. do not parse input of varied lengths.
-                message = buf.split(':')
+                message = received.split(':')
                 # @debug1
                 self.logger.debug('len(msg)[{0}]\n'.format(len(message)))
                 if len(message) != 3:
