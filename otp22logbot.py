@@ -148,6 +148,11 @@ class Bot(object):
         return sock
 
     def loop(self, sock):
+        """
+        This takes sock for two reasons.
+        1. We may want a Bot instance to loop on an existing socket.
+        2. We may want the same instance of Bot to serve multiple sockets.
+        """
         socksender = SockSender(sock, self.logger)
         socksend = socksender.send
         last_message = ''
