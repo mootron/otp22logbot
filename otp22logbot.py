@@ -247,6 +247,17 @@ class Bot(object):
         def last(conn, requester, channel, parameter):
             conn.privmsg(channel, last_message)
 
+        def user(conn, requester, channel, parameter):
+            if parameter in users:
+                this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
+                user_lastmsg = users[requester]['time'].strftime(self.app_data['timeformat_extended'])
+                line = ('User {0} (last seen {1}), (last message {2} -- {3})'
+                        .format(parameter, this_time, user_lastmsg,
+                                users[requester]['message']))
+            else:
+                line = 'Information unavailable for user {0}'.format(parameter)
+            conn.privmsg(channel, line)
+
         while not self.should_die:
             now = datetime.utcnow()
             buf = conn.recv(1024)
@@ -311,15 +322,7 @@ class Bot(object):
                 elif command == '.last':
                     last(conn, requester, channel, parameter)
                 elif command == '.user':
-                    if parameter in users:
-                        this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
-                        user_lastmsg = users[requester]['time'].strftime(self.app_data['timeformat_extended'])
-                        line = ('User {0} (last seen {1}), (last message {2} -- {3})'
-                                .format(parameter, this_time, user_lastmsg,
-                                        users[requester]['message']))
-                    else:
-                        line = 'Information unavailable for user {0}'.format(parameter)
-                    conn.privmsg(channel, line)
+                    user(conn, requester, channel, parameter)
                 elif command == '.version':
                     self.version(conn, requester, channel, parameter)
                 elif command == '.kill' and channel != self.app_args.channel:
