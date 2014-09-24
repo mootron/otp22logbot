@@ -320,9 +320,8 @@ class Bot(object):
 
     def shutdown(self):
         now = datetime.utcnow()
-        end_message = (
-            'CONNECTION STOPPED ... dying at {0}\n'
-            .format(now.strftime(self.app_data['timeformat'])))
+        timestamp = now.strftime(self.app_data['timeformat'])
+        end_message = 'CONNECTION STOPPED ... dying at {0}\n'.format(timestamp)
         self.file_send(end_message)
         self.logger.info(end_message)
         self.app_args.output.close()
