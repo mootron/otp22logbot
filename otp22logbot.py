@@ -174,7 +174,6 @@ class Bot(object):
         return Connection(sock, self.logger)
 
     def handshake(self, conn):
-        send = conn.send
         # @todo accept a server password
         # if app_args.password != False:
         #  sock.send('PASS {app_args.password}\r\n'.format(app_args=app_args).encode('utf-8'))
