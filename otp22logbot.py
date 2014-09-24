@@ -244,6 +244,9 @@ class Bot(object):
         message = ''
         users = {}
 
+        def last(conn, requester, channel, parameter):
+            conn.privmsg(channel, last_message)
+
         while not self.should_die:
             now = datetime.utcnow()
             buf = conn.recv(1024)
@@ -306,7 +309,7 @@ class Bot(object):
                 elif command == '.help':
                     self.help(conn, requester, channel, parameter)
                 elif command == '.last':
-                    conn.privmsg(channel, last_message)
+                    last(conn, requester, channel, parameter)
                 elif command == '.user':
                     if parameter in users:
                         this_time = users[requester]['seen'].strftime(self.app_data['timeformat_extended'])
