@@ -83,6 +83,11 @@ def make_parser():
         nargs='?',
         type=str
     )
+    parser.add_argument(
+        '--debug',
+        action="store_true",
+        help="print debug information"
+    )
     return parser
 
 
@@ -107,7 +112,6 @@ class SockSender(object):
 
 
 APP_DATA = {
-    'debug': True,
     'kill': False,
     'overlord': 'L0j1k',
     'phase': 'a',
@@ -303,7 +307,10 @@ def shutdown(app_args, logger):
 
 def configure_logging(app_args):
     logger = logging.getLogger(__name__)
-    logger.setLevel(logging.DEBUG)
+    if app_args.debug:
+        logger.setLevel(logging.DEBUG)
+    else:
+        logger.setLevel(logging.INFO)
     console_formatter = logging.Formatter(
         fmt="[+] %(message)s",
     )
