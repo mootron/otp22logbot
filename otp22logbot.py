@@ -118,7 +118,7 @@ APP_DATA = {
     'version': '0.0.4'
 }
 
-def startup(app_args):
+def startup(app_args, logger):
     now = datetime.utcnow()
     template = textwrap.dedent("""
         otp22logbot.py {app_data[version]}{app_data[phase]} by L0j1k\n
@@ -136,7 +136,7 @@ def startup(app_args):
     sysprint(message)
 
 
-def connect(app_args):
+def connect(app_args, logger):
     sock = socket.socket()
     sock.connect((app_args.server, app_args.port))
 
@@ -171,7 +171,7 @@ def connect(app_args):
 # ==> nick change
 #:default!~default@cpe-70-112-152-59.austin.res.rr.com NICK :Guest64847
 
-def loop(sock, app_args):
+def loop(sock, app_args, logger):
     last_message = ''
     message = ''
     users = {}
@@ -286,7 +286,7 @@ def loop(sock, app_args):
                 socksend(sock, 'NOTICE {0} :{1}'.format(requester, line))
 
 
-def shutdown(app_args):
+def shutdown(app_args, logger):
     now = datetime.utcnow()
     end_message = ('[+] CONNECTION STOPPED ... dying at {0}\n'
                    .format(now.strftime(APP_DATA['timeformat'])))
@@ -312,10 +312,10 @@ def main():
     parser = make_parser()
     app_args = parser.parse_args()
     logger = configure_logging(app_args)
-    startup(app_args)
-    sock = connect(app_args)
-    loop(sock, app_args)
-    shutdown(app_args)
+    startup(app_args, logger)
+    sock = connect(app_args, logger)
+    loop(sock, app_args, logger)
+    shutdown(app_args, logger)
 
 
 if __name__ == "__main__":
