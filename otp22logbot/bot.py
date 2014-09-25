@@ -231,6 +231,10 @@ class Bot(object):
                     requester = prefix.split(b"!", 1)[0].decode(encoding)
                     if command == b"PING":
                         conn.pong(params.decode(encoding))
+                    elif command == b"ERROR":
+                        if b"connect too fast" in params:
+                            self.logger.info("connection throttled")
+                            break
                     elif command == b"PRIVMSG":
                         targets, text = protocol.parse_privmsg(params)
                         formatted = self.format_message(requester, targets, text)
