@@ -132,7 +132,6 @@ class Connection(object):
 
     def pong(self, server):
         # RFC 1459 4.6.3, RFC 2812 3.7.3
-        # - server is MY server.
         self.send('PONG {0}'.format(server))
 
     def quit(self, quit_message):
