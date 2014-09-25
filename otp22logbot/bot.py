@@ -225,9 +225,9 @@ class Bot(object):
                         conn.last_message = formatted
                         formatted = self.format_message(requester, targets, text)
                         self.file_send(formatted)
+                        self.dispatch(conn, prefix, targets, text)
                         user = self.get_user(requester) or self.new_user(requester)
                         user.update(targets, formatted)
-                        self.dispatch(conn, prefix, targets, text)
 
     def shutdown(self):
         now = Datetime.utcnow()
