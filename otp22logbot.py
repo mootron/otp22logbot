@@ -274,22 +274,10 @@ class Bot(object):
     def last(self, conn, requester, channel, args):
         conn.privmsg(channel, conn.last_message)
 
-    def parse_command(self, requester, message_body):
+    def parse_command(self, message_body):
         if len(message_body) > 3:
-            return (None,)
-        command = None
-        parameter = None
-        modifier = None
-        if message_body:
-            command = str(message_body[0])
-        if len(message_body) > 1:
-            parameter = str(message_body[1])
-        if len(message_body) > 2:
-            modifier = str(message_body[2])
-        # @debug1
-        self.logger.info('cmd[{0}] param[{1}] mod[{2}] req[{3}]\n'
-                         .format(command, parameter, modifier, requester))
-        return [command, parameter, modifier]
+            return None
+        return message_body
 
     def format_message(self, requester, channel, content):
         now = datetime.utcnow()
@@ -334,7 +322,7 @@ class Bot(object):
             if 'PING' in received:
                 conn.pong(received.split(None, 2)[1])
             if 'PRIVMSG' in received:
-                channel, requester = parse_message(received)
+                channel, requester, message_body = parse_message(received)
                 # @task handle regular messages to the channel
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
@@ -344,7 +332,14 @@ class Bot(object):
                 user.update(channel, message[2])
 
                 self.file_send(formatted_message)
-                command, *args = self.parse_command(requester, message_body)
+                parsed = self.parse_command(message_body)
+                if not parsed:
+                    self.logger.warning("parse_command failed on {0}"
+                                        .format(message_body))
+                    continue
+                command, *args = parsed
+                self.logger.info('cmd[{0}] args[{1}] req[{2}]\n'
+                                 .format(command, args, requester))
                 function = self.commands.get(command)
                 if function:
                     function(conn, requester, channel, args)
