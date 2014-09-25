@@ -30,6 +30,7 @@ class Bot(object):
             'version': ".version: displays version information",
         }
         self.channel = '#' + self.app_args.channel
+        self.nick = self.app_args.nick.encode("utf-8")
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]'.format(data))
@@ -74,7 +75,7 @@ class Bot(object):
         conn.privmsg_user(
             self.app_data['overlord'], 'Greetings, overlord. I am for you.')
         conn.privmsg_channel(
-            '#' + self.app_args.channel,
+            self.channel,
             'I am a logbot and I am ready! Use ".help" for help.')
 
     def help(self, conn, requester, channel, args):
