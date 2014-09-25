@@ -13,7 +13,6 @@ This is the primary application driver file.
 import sys
 import logging
 import argparse
-from otp22logbot.app_data import APP_DATA
 from otp22logbot.bot import Bot
 
 
