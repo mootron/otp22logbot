@@ -394,15 +394,15 @@ class Bot(object):
 
 
 def parse_privmsg(data):
-    message = data.split(b':', 3)
-    if len(message) != 3:
+    segments = data.split(b':', 3)
+    if len(segments) != 3:
         return None
     else:
-        message_header = message[1].strip().split(b' ', 3)
-        args = message[2].strip().split(b' ')
-    if message_header:
-        channel = str(message_header[2])
-        requester = str(message_header[0].split(b'!', 1)[0])
+        header = segments[1].strip().split(b' ', 3)
+        args = segments[2].strip().split(b' ')
+    if header:
+        channel = header[2]
+        requester = header[0].split(b'!', 1)[0]
     return channel, requester, args
 
 
