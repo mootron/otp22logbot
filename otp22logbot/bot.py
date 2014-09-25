@@ -33,7 +33,8 @@ class Bot(object):
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]'.format(data))
-        self.app_args.output.write(str(data))
+        self.app_args.output.write(data + '\n')
+        self.app_args.output.flush()
 
     def startup(self):
         info = self.logger.info
