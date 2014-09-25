@@ -17,9 +17,12 @@ class Connection(object):
 
     @classmethod
     def new(cls, host, port, logger=None):
-        sock = Socket()
-        sock.connect((host, port))
         logger = logger or logging.getLogger(__name__)
+        sock = Socket()
+        try:
+            sock.connect((host, port))
+        except socket.error:
+            return None
         return Connection(sock, logger)
 
     def send(self, data):
