@@ -15,6 +15,7 @@ import logging
 from datetime import datetime
 import socket
 import sys
+import protocol
 
 
 APP_DATA = {
@@ -109,9 +110,9 @@ class User(object):
         self.seen = None
         self.time = None
 
-    def update(self, channel, message, now=None):
+    def update(self, channels, message, now=None):
         now = now or datetime.utcnow()
-        self.channels.add(channel)
+        self.channels |= set(channels)
         self.message = message
         self.seen = now
         self.time = now
@@ -255,6 +256,7 @@ class Bot(object):
             'user': ".user [user]: displays information about user. if unspecified, defaults to command requester",
             'version': ".version: displays version information",
         }
+        self.channel = self.app_args.channel
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]'.format(data))
@@ -334,16 +336,12 @@ class Bot(object):
     def last(self, conn, requester, channel, args):
         conn.privmsg_channel(channel, conn.last_message)
 
-    def parse_command(self, message_body):
-        if len(message_body) > 3:
-            return None
-        return message_body
-
-    def format_message(self, requester, channel, content):
+    def format_message(self, requester, targets, content):
         now = datetime.utcnow()
+        targets = ",".join(targets)
         formatted_message = '<{0}> {1} ({2}): {3}'.format(
             now.strftime(self.app_data['timeformat']),
-            requester, channel, content)
+            requester, targets, content)
         return formatted_message
 
     def get_user(self, nick):
@@ -366,43 +364,42 @@ class Bot(object):
             line = 'Information unavailable for user {0}'.format(parameter)
         conn.privmsg_channel(channel, line)
 
+    def dispatch(self, conn, prefix, targets, text):
+        args = text.split(b" ", 1)
+        command, args = args[0], args[1:] if len(args) > 1 else []
+        function = self.commands.get(command)
+        if function and self.channel in targets:
+            self.logger.info("{0} is running {1} {2}"
+                             .format(prefix, command, args))
+            # TODO: ensure downstream commands understand args,
+            # possibly prechew it here - unicode, lists...
+            requester = prefix.split(b"!", 1)[0]
+            function(conn, requester, self.channel, args)
+
     def loop(self, conn):
         """
         This takes conn for two reasons.
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
-        formatted_message = ''
-        buffer = ''
-
+        it = protocol.message_iterator(self.logger)
+        formatted = ''
         while not self.should_die:
             received = conn.recv(1024)
             self.logger.debug('received {0}'.format(received))
-            buffer = buffer + received
-            # Still can't decode sensibly, so we just inspect bytes.
-            if message.startswith(b'PING'):
-                conn.pong(message.split(None, 2)[1])
-            elif message.startswith(b'PRIVMSG'):
-                channel, requester, message_body = parse_privmsg(message)
-                conn.last_message = formatted_message
-                formatted_message = self.format_message(
-                    requester, channel, message_body[2])
-
-                user = self.get_user(requester)
-                user.update(channel, message_body[2])
-
-                self.file_send(formatted_message)
-                parsed = self.parse_command(message_body)
-                if not parsed:
-                    self.logger.warning("parse_command failed on {0}"
-                                        .format(message_body))
-                    continue
-                command, *args = parsed
-                self.logger.info('cmd[{0}] args[{1}] req[{2}]\n'
-                                 .format(command, args, requester))
-                function = self.commands.get(command)
-                if function:
-                    function(conn, requester, channel, args)
+            messages = it.send(received)
+            for prefix, command, params in messages:
+                requester = prefix.split(b"!", 1)[0]
+                if command == b"PING":
+                    conn.pong(params)
+                elif command == b"PRIVMSG":
+                    targets, text = protocol.parse_privmsg(params)
+                    conn.last_message = formatted
+                    formatted = self.format_message(requester, targets, text)
+                    self.file_send(formatted)
+                    user = self.get_user(requester)
+                    user.update(targets, text)
+                    self.dispatch(conn, prefix, targets, text)
 
     def shutdown(self):
         now = datetime.utcnow()
@@ -411,19 +408,6 @@ class Bot(object):
         self.file_send(end_message)
         self.logger.info(end_message)
         self.app_args.output.close()
-
-
-def parse_privmsg(data):
-    segments = data.split(b':', 3)
-    if len(segments) != 3:
-        return None
-    else:
-        header = segments[1].strip().split(b' ', 3)
-        args = segments[2].strip().split(b' ')
-    if header:
-        channel = header[2]
-        requester = header[0].split(b'!', 1)[0]
-    return channel, requester, args
 
 
 def configure_logging(app_args):
