@@ -192,6 +192,8 @@ class Bot(object):
             # TODO: ensure downstream commands understand args,
             # possibly prechew it here - unicode, lists...
             function(conn, requester, target, args)
+            return True
+        return False
 
     def loop(self, conn):
         """
@@ -217,17 +219,26 @@ class Bot(object):
                 self.logger.debug('received {0}'.format(received))
                 messages = it.send(received)
                 for prefix, command, params in messages:
+                    now = Datetime.utcnow()
                     requester = prefix.split(b"!", 1)[0].decode(encoding)
                     if command == b"PING":
                         conn.pong(params.decode(encoding))
                     elif command == b"PRIVMSG":
                         targets, text = protocol.parse_privmsg(params)
-                        conn.last_message = formatted
                         formatted = self.format_message(requester, targets, text)
                         self.file_send(formatted)
-                        self.dispatch(conn, prefix, targets, text)
+                        dispatched = self.dispatch(conn, prefix, targets, text)
+                        if not dispatched:
+                            print("setting conn.last_message", formatted)
+                            conn.last_message = formatted
                         user = self.get_user(requester) or self.new_user(requester)
-                        user.update(targets, formatted)
+                        if dispatched:
+                            user.update(now=now)
+                        else:
+                            channels = [target for target in targets
+                                        if target and target[0] == '#']
+                            user.update(channels=channels, message=formatted,
+                                        now=now)
 
     def shutdown(self):
         now = Datetime.utcnow()
