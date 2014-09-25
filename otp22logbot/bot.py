@@ -158,7 +158,8 @@ class Bot(object):
 
     def dispatch(self, conn, prefix, targets, text):
         encoding = "ascii"  # TODO
-        requester = prefix.split(b"!", 1)[0].decode(encoding)
+        prefix = prefix.decode(encoding)
+        requester = prefix.split("!", 1)[0]
         targets = [target.decode(encoding) for target in targets]
         args = [arg.decode(encoding) for arg in text.split(b" ", 1)]
 
@@ -177,6 +178,7 @@ class Bot(object):
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
+        encoding = "ascii"
         it = protocol.message_iterator(self.logger)
         it.send(None)
         formatted = ''
@@ -194,9 +196,9 @@ class Bot(object):
                 self.logger.debug('received {0}'.format(received))
                 messages = it.send(received)
                 for prefix, command, params in messages:
-                    requester = prefix.split(b"!", 1)[0].decode("ascii")
+                    requester = prefix.split(b"!", 1)[0].decode(encoding)
                     if command == b"PING":
-                        conn.pong(params)
+                        conn.pong(params.decode(encoding))
                     elif command == b"PRIVMSG":
                         targets, text = protocol.parse_privmsg(params)
                         conn.last_message = formatted
