@@ -5,5 +5,3 @@ APP_DATA = {
     'timeformat_extended': '%Y-%m-%d %H:%M:%S',
     'version': '0.0.4'
 }
-
-
