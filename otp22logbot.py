@@ -139,6 +139,11 @@ class Connection(object):
             self.logger.debug('cannot safely encode data: {0!r}'
                               .format(data))
             return
+        # This especially sucks with UTF-8.
+        if len(encoded) > 510:
+            self.logger.debug("cannot safely send overlong data: {0!r}"
+                              .format(data[:520]))
+            return
         self.logger.debug('=SENDING=>[{0}]\n'.format(data))
         self.sock.send(encoded + b'\r\n')
 
