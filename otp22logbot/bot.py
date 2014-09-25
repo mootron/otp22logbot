@@ -1,8 +1,8 @@
 from datetime import datetime as Datetime
-from main import APP_DATA
-from connection import Connection
-from user import User
-import protocol
+from otp22logbot.app_data import APP_DATA
+from otp22logbot.connection import Connection
+from otp22logbot.user import User
+from otp22logbot import protocol
 
 
 class Bot(object):

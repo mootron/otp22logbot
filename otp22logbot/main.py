@@ -13,16 +13,8 @@ This is the primary application driver file.
 import sys
 import logging
 import argparse
-from otp22logbot import Bot
-
-
-APP_DATA = {
-    'overlord': 'L0j1k',
-    'phase': 'a',
-    'timeformat': '%H:%M:%S',
-    'timeformat_extended': '',
-    'version': '0.0.4'
-}
+from otp22logbot.app_data import APP_DATA
+from otp22logbot.bot import Bot
 
 
 def make_parser():

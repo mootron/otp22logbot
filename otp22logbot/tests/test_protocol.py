@@ -1,5 +1,5 @@
 import logging
-from protocol import parse_message, parse_messages, parse_privmsg
+from otp22logbot.protocol import parse_message, parse_messages, parse_privmsg
 
 
 class Test_parse_message(object):
