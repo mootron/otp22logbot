@@ -202,6 +202,12 @@ class Bot(object):
         2. We may want the same instance of Bot to serve multiple sockets.
         """
         encoding = "ascii"
+        ignored = set([
+            b'372',  # response to MOTD at login
+            b'042',  # RPL_YOURID
+            b'375',  # MOTD
+
+        ])
         it = protocol.message_iterator(self.logger)
         it.send(None)
         formatted = ''
@@ -219,6 +225,8 @@ class Bot(object):
                 self.logger.debug('received {0}'.format(received))
                 messages = it.send(received)
                 for prefix, command, params in messages:
+                    if command in ignored:
+                        continue
                     now = Datetime.utcnow()
                     requester = prefix.split(b"!", 1)[0].decode(encoding)
                     if command == b"PING":
