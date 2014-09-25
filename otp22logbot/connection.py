@@ -48,7 +48,11 @@ class Connection(object):
         # Totally ignore encoding. We can't guarantee anything about
         # what the server might be sending us, and pretty much have to
         # take whatever. Because IRC.
-        buf = self.sock.recv(size)
+        try:
+            buf = self.sock.recv(size)
+        except ConnectionResetError:
+            self.logger.error("Connection reset by peer")
+            return b''
         return buf
 
     def __enter__(self):
