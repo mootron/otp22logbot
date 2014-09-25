@@ -143,7 +143,7 @@ class Bot(object):
         parameter = args[0] if args else None
         if parameter in self.users:
             user = self.users[requester]
-            timeformat = self.appdata['timeformat_extended']
+            timeformat = self.app_data['timeformat_extended']
             this_time = user.seen.strftime(timeformat)
             user_lastmsg = user.time.strftime(timeformat)
             line = ('User {0} (last seen {1}), (last message {2} -- {3})'
