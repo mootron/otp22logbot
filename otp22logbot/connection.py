@@ -58,9 +58,12 @@ class Connection(object):
         self.close()
 
     def close(self):
-        self.logger.debug("socket shutdown")
-        self.sock.shutdown(socket.SHUT_RDWR)
-        self.logger.debug("socket close")
+        self.logger.debug("closing connection")
+        try:
+            self.sock.shutdown(socket.SHUT_RDWR)
+        except OSError:
+            self.logger.exception("OSError during sock.shutdown")
+            return
         self.sock.close()
 
     def nick(self, nickname):
