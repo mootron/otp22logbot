@@ -118,7 +118,7 @@ class User(object):
 
 
 class Connection(object):
-    """Wrap a socket.
+    """Wrap a socket and IRC details.
 
     This lets us do things like log interactions with the socket and
     easily change how we handle sockets in the future.
