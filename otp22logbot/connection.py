@@ -1,5 +1,7 @@
 import logging
 from socket import socket as Socket
+from time import sleep
+from datetime import datetime as Datetime, timedelta as Timedelta
 
 
 class Connection(object):
@@ -14,6 +16,8 @@ class Connection(object):
         self.logger = logger
         self.last_message = None
         self.encoding = "ascii"
+        self.last_send = None
+        self.send_timer = 0.1
 
     @classmethod
     def new(cls, host, port, logger=None):
@@ -41,7 +45,14 @@ class Connection(object):
                               .format(data[:520]))
             return
         self.logger.debug('=SENDING=>[{0}]'.format(data))
+        if self.last_send:
+            deadline = self.last_send + Timedelta(seconds=self.send_timer)
+            now = Datetime.utcnow()
+            if now < deadline:
+                wait = deadline - now
+                sleep(wait.seconds + wait.microseconds / 1000000)
         self.sock.sendall(encoded + b'\r\n')
+        self.last_send = Datetime.utcnow()
 
     def recv(self, size=1024):
         # Totally ignore encoding. We can't guarantee anything about
