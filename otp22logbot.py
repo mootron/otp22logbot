@@ -359,9 +359,10 @@ class Bot(object):
             received = conn.recv(1024)
             self.logger.debug('received {0}'.format(received))
             buffer = buffer + received
-            if message.startswith('PING'):
+            # Still can't decode sensibly, so we just inspect bytes.
+            if message.startswith(b'PING'):
                 conn.pong(message.split(None, 2)[1])
-            elif message.startswith('PRIVMSG'):
+            elif message.startswith(b'PRIVMSG'):
                 channel, requester, message_body = parse_privmsg(message)
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
