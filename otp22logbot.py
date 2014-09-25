@@ -127,10 +127,20 @@ class Connection(object):
         self.sock = sock
         self.logger = logger
         self.last_message = None
+        self.encoding = "ascii"
 
     def send(self, data):
+        # IRC encoding seems dodgy. UTF-8 could be okay, or ISO 8859-1,
+        # but we just don't know. So punt and make it configurable -
+        # but default to enforcing ASCII.
+        try:
+            encoded = data.encode(self.encoding)
+        except UnicodeEncodeError:
+            self.logger.debug('cannot safely encode data: {0!r}'
+                              .format(data))
+            return
         self.logger.debug('=SENDING=>[{0}]\n'.format(data))
-        self.sock.send((data + '\r\n').encode('utf-8'))
+        self.sock.send(encoded + b'\r\n')
 
     def recv(self, size=1024):
         buf = self.sock.recv(size).decode('utf-8')
