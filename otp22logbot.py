@@ -123,17 +123,17 @@ class Connection(object):
     This lets us do things like log interactions with the socket and
     easily change how we handle sockets in the future.
     """
-    def __init__(self, socket, logger):
-        self.socket = socket
+    def __init__(self, sock, logger):
+        self.sock = sock
         self.logger = logger
         self.last_message = None
 
     def send(self, data):
         self.logger.debug('=SENDING=>[{0}]\n'.format(data))
-        self.socket.send((data + '\r\n').encode('utf-8'))
+        self.sock.send((data + '\r\n').encode('utf-8'))
 
     def recv(self, size=1024):
-        buf = self.socket.recv(size).decode('utf-8')
+        buf = self.sock.recv(size).decode('utf-8')
         return buf
 
     def nick(self, name):
