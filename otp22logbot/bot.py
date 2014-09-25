@@ -124,10 +124,14 @@ class Bot(object):
 
     def format_message(self, requester, targets, content):
         now = Datetime.utcnow()
-        targets = ",".join(targets)
+        # Ugh, encoding ambiguity
+        encoding = "utf-8"
+        targets = b",".join(targets).decode(encoding)
         formatted_message = '<{0}> {1} ({2}): {3}'.format(
             now.strftime(self.app_data['timeformat']),
-            requester, targets, content)
+            requester,
+            targets,
+            content.decode(encoding))
         return formatted_message
 
     def get_user(self, nick):
