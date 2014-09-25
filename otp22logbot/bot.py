@@ -172,22 +172,28 @@ class Bot(object):
         """
         it = protocol.message_iterator(self.logger)
         formatted = ''
-        while not self.should_die:
-            received = conn.recv(1024)
-            self.logger.debug('received {0}'.format(received))
-            messages = it.send(received)
-            for prefix, command, params in messages:
-                requester = prefix.split(b"!", 1)[0]
-                if command == b"PING":
-                    conn.pong(params)
-                elif command == b"PRIVMSG":
-                    targets, text = protocol.parse_privmsg(params)
-                    conn.last_message = formatted
-                    formatted = self.format_message(requester, targets, text)
-                    self.file_send(formatted)
-                    user = self.get_user(requester)
-                    user.update(targets, text)
-                    self.dispatch(conn, prefix, targets, text)
+        with conn:
+            while not self.should_die:
+                try:
+                    received = conn.recv(1024)
+                except KeyboardInterrupt:
+                    self.file_send("received KeyboardInterrupt")
+                    conn.quit("Shutting down")
+                    break
+                self.logger.debug('received {0}'.format(received))
+                messages = it.send(received)
+                for prefix, command, params in messages:
+                    requester = prefix.split(b"!", 1)[0].decode("ascii")
+                    if command == b"PING":
+                        conn.pong(params)
+                    elif command == b"PRIVMSG":
+                        targets, text = protocol.parse_privmsg(params)
+                        conn.last_message = formatted
+                        formatted = self.format_message(requester, targets, text)
+                        self.file_send(formatted)
+                        user = self.get_user(requester) or self.new_user(requester)
+                        user.update(targets, formatted)
+                        self.dispatch(conn, prefix, targets, text)
 
     def shutdown(self):
         now = Datetime.utcnow()
