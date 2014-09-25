@@ -47,6 +47,18 @@ class Connection(object):
         buf = self.sock.recv(size)
         return buf
 
+    def __enter__(self):
+        pass
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
+    def close(self):
+        self.logger.debug("socket shutdown")
+        self.sock.shutdown(socket.SHUT_RDWR)
+        self.logger.debug("socket close")
+        self.sock.close()
+
     def nick(self, nickname):
         assert nickname
         assert " " not in nickname
