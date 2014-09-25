@@ -332,7 +332,7 @@ class Bot(object):
             # @debug1
             self.logger.debug('received {0}'.format(received))
             if 'PING' in received:
-                conn.pong(received.split()[1])
+                conn.pong(received.split(None, 2)[1])
             if 'PRIVMSG' in received:
                 channel, requester = parse_message(received)
                 # @task handle regular messages to the channel
