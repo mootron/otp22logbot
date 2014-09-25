@@ -349,16 +349,12 @@ class Bot(object):
 
 
 def parse_message(data):
-    self.logger.debug('handling shit')
     message = data.split(':', 3)
-    self.logger.debug('len(msg)[{0}]\n'.format(len(message)))
     if len(message) != 3:
         continue
     else:
         message_header = message[1].strip().split(' ', 3)
         message_body = message[2].strip().split(' ')
-    self.logger.debug("header {0}".format(message_header))
-    self.logger.debug("body {0}".format(message_body))
     if message_header:
         channel = str(message_header[2])
         requester = str(message_header[0].split('!', 1)[0])
