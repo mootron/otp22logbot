@@ -148,7 +148,10 @@ class Connection(object):
         self.sock.send(encoded + b'\r\n')
 
     def recv(self, size=1024):
-        buf = self.sock.recv(size).decode('utf-8')
+        # Totally ignore encoding. We can't guarantee anything about
+        # what the server might be sending us, and pretty much have to
+        # take whatever. Because IRC.
+        buf = self.sock.recv(size)
         return buf
 
     def nick(self, name):
@@ -369,15 +372,15 @@ class Bot(object):
 
 
 def parse_privmsg(data):
-    message = data.split(':', 3)
+    message = data.split(b':', 3)
     if len(message) != 3:
         return None
     else:
-        message_header = message[1].strip().split(' ', 3)
-        args = message[2].strip().split(' ')
+        message_header = message[1].strip().split(b' ', 3)
+        args = message[2].strip().split(b' ')
     if message_header:
         channel = str(message_header[2])
-        requester = str(message_header[0].split('!', 1)[0])
+        requester = str(message_header[0].split(b'!', 1)[0])
     return channel, requester, args
 
 
