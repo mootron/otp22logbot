@@ -220,7 +220,7 @@ class Bot(object):
     def connect(self):
         sock = socket.socket()
         sock.connect((self.app_args.server, self.app_args.port))
-        return Connection(sock, self.logger)
+        return Connection(sock, self.logger.getChild("connection"))
 
     def handshake(self, conn):
         if self.app_args.password:
@@ -385,7 +385,7 @@ def main():
     parser = make_parser()
     app_args = parser.parse_args()
     logger = configure_logging(app_args)
-    bot = Bot(app_args, logger)
+    bot = Bot(app_args, logger.getChild("bot"))
     bot.startup()
     try:
         sock = bot.connect()
