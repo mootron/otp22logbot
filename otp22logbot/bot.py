@@ -132,9 +132,11 @@ class Bot(object):
 
     def get_user(self, nick):
         user = self.users.get(nick)
-        if not user:
-            user = User(nick)
-            self.users[nick] = user
+        return user
+
+    def new_user(self, nick):
+        user = User(nick)
+        self.users[nick] = user
         return user
 
     def user(self, conn, requester, channel, args):
