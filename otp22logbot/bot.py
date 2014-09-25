@@ -56,6 +56,9 @@ class Bot(object):
         info("using timestamp format {0}".format(timeformat))
 
     def connect(self):
+        self.logger.info("connecting to {0} {1}"
+                         .format(self.app_args.server,
+                                 self.app_args.port))
         return Connection.new(
             self.app_args.server, self.app_args.port,
             logger=self.logger.getChild("connection"))
