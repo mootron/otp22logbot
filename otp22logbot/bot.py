@@ -140,7 +140,7 @@ class Bot(object):
         return user
 
     def user(self, conn, requester, channel, args):
-        parameter = args[0] if args else None
+        parameter = args[0] if args else requester
         if parameter in self.users:
             user = self.users[requester]
             timeformat = self.app_data['timeformat_extended']
