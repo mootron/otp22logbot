@@ -185,13 +185,42 @@ class Connection(object):
         assert channel.startswith('#'), channel
         self.send('JOIN {0}{1}'.format(channel, ' ' + key if key else ''))
 
-    def privmsg(self, target, text):
-        assert target
-        assert text
+    def _privmsg_any(self, targets, text):
+        """Just put together and send a PRIVMSG message.
+
+        Not meant to be used generally, since validation is so loose
+        and it is a slight extra burden to pass a sequence in.
+        """
         # RFC 1459 4.4.1, RFC 2812 3.3.1
-        # TODO: somehow structure whether we mean channel or user or multiple
-        # TODO: multiple receivers separated by commas, within length limit
-        self.send('PRIVMSG {0} :{1}'.format(target, text))
+        if not text:
+            return
+        for target in targets:
+            if not target:
+                continue
+            self.send('PRIVMSG {0} :{1}'.format(target, text))
+
+    def privmsg_user(self, nickname, text):
+        """Send a PRIVMSG to the named user.
+
+        Intentionally barfs if the coder tries to jam a channel
+        or a list or something in.
+        """
+        assert nickname
+        assert not nickname.startswith('#')
+        assert text
+        self._privmsg_any([nickname], text)
+
+    def privmsg_channel(self, channel, text):
+        """Send a PRIVMSG to the named channel.
+
+        Intentionally barfs if the coder tries to jam a nickname
+        or a list or something in. As it happens, won't deal with funky
+        channels that begin with & either.
+        """
+        assert channel
+        assert channel.startswith('#')
+        assert text
+        self._privmsg_any([channel], text)
 
     def notice(self, target, text):
         # RFC 1459 4.4.2, RFC 2812 3.3.2
@@ -269,11 +298,10 @@ class Bot(object):
             conn.password(self.app_args.password)
         conn.nick(self.app_args.nick)
         conn.user(self.app_args.user, self.app_args.server, self.app_args.real)
-        conn.join('#' + self.app_args.channel)
-        conn.privmsg(
-            self.app_data['overlord'],
-            'Greetings, overlord. I am for you.')
-        conn.privmsg(
+        conn.join(['#' + self.app_args.channel])
+        conn.privmsg_user(
+            self.app_data['overlord'], 'Greetings, overlord. I am for you.')
+        conn.privmsg_channel(
             '#' + self.app_args.channel,
             'I am a logbot and I am ready! Use ".help" for help.')
 
@@ -283,25 +311,24 @@ class Bot(object):
             line = self.helps.get(parameter)
         if not parameter or not line:
             line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-        conn.privmsg(channel, line)
+        conn.privmsg_channel(channel, line)
 
     def flush(self, conn, requester, channel, args):
-        conn.privmsg(channel, 'Flushing and rotating logfiles...')
+        conn.privmsg_channel(channel, 'Flushing and rotating logfiles...')
 
     def version(self, conn, requester, channel, args):
         version_string = (
             "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
             .format(app_data=self.app_data))
-        conn.privmsg(channel, version_string)
+        conn.privmsg_channel(channel, version_string)
 
     def kill(self, conn, requester, channel, args):
         parameter = args[0] if args else None
         if self.app_args.kill and parameter == self.app_args.kill:
             self.should_die = True
-            conn.privmsg(
-                requester,
-                'With urgency, my lord. Dying at your request.')
-            conn.privmsg(channel, 'Goodbye!')
+            conn.privmsg_user(
+                requester, 'With urgency, my lord. Dying at your request.')
+            conn.privmsg_channel(channel, 'Goodbye!')
             conn.quit('killed by {0}'.format(requester))
 
     def version_query(self, conn, requester, channel, args):
@@ -312,7 +339,7 @@ class Bot(object):
         conn.notice(requester, line)
 
     def last(self, conn, requester, channel, args):
-        conn.privmsg(channel, conn.last_message)
+        conn.privmsg_channel(channel, conn.last_message)
 
     def parse_command(self, message_body):
         if len(message_body) > 3:
@@ -344,7 +371,7 @@ class Bot(object):
                     .format(parameter, this_time, user_lastmsg, user.message))
         else:
             line = 'Information unavailable for user {0}'.format(parameter)
-        conn.privmsg(channel, line)
+        conn.privmsg_channel(channel, line)
 
     def loop(self, conn):
         """
