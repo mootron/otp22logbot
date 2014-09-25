@@ -188,6 +188,9 @@ class Bot(object):
                     self.file_send("received KeyboardInterrupt")
                     conn.quit("Shutting down")
                     break
+                if received == b'':
+                    self.file_send("connection closed")
+                    break
                 self.logger.debug('received {0}'.format(received))
                 messages = it.send(received)
                 for prefix, command, params in messages:
