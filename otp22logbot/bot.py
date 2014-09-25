@@ -29,7 +29,7 @@ class Bot(object):
             'user': ".user [user]: displays information about user. if unspecified, defaults to command requester",
             'version': ".version: displays version information",
         }
-        self.channel = self.app_args.channel
+        self.channel = '#' + self.app_args.channel
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]'.format(data))
