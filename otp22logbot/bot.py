@@ -111,7 +111,16 @@ class Bot(object):
         conn.notice(requester, line)
 
     def last(self, conn, requester, channel, args):
-        conn.privmsg_channel(channel, conn.last_message)
+        parameter = args[0] if args else None
+        if parameter:
+            user = self.get_user(parameter)
+            if not user:
+                line = "unknown user"
+            else:
+                line = user.message
+        else:
+            line = conn.last_message
+        conn.privmsg_channel(channel, line or "no last message")
 
     def format_message(self, requester, targets, content):
         now = Datetime.utcnow()
