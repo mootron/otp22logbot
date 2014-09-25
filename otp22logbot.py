@@ -161,16 +161,10 @@ class Connection(object):
         self.send('NICK {0}'.format(nickname))
 
     def user(self, username, realname):
-        #, mode=0, hostname=None, servername="default"):
-        # assert hostname
         assert username
         assert realname
-        # TODO: how to autodetect format to use?
         # RFC 1459 4.1.3 "username hostname servername :real name"
         # RFC 2812 3.1.3 "user mode unused :realname"
-        # mode is numeric, e.g. 0
-        # unused is conventionally *
-        # self.send('USER {0} {1} {2} :{3}'.format(username, hostname, servername, realname))
         self.send('USER {0} 0 * :{1}'.format(username, realname))
 
     def password(self, password):
