@@ -70,7 +70,7 @@ def make_parser():
     parser.add_argument(
         '-s', '--server',
         help='IRC server to connect to. Default "irc.freenode.net"',
-        default='irc.freenode.net',
+        default='localhost',
         nargs='?',
         type=str
     )
