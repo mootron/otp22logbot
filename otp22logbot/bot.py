@@ -30,7 +30,7 @@ class Bot(object):
             'version': ".version: displays version information",
         }
         self.channel = '#' + self.app_args.channel
-        self.nick = self.app_args.nick.encode("utf-8")
+        self.nick = self.app_args.nick
 
     def file_send(self, data):
         self.logger.debug('=WRITING=>[{0}]'.format(data))
@@ -78,30 +78,40 @@ class Bot(object):
             self.channel,
             'I am a logbot and I am ready! Use ".help" for help.')
 
-    def help(self, conn, requester, channel, args):
+    def help(self, conn, requester, target, args):
         parameter = args[0] if args else None
         if parameter:
             line = self.helps.get(parameter)
         if not parameter or not line:
             line = 'Available commands (use .help <command> for more help): flush, help, kill, last, user, version'
-        conn.privmsg_channel(channel, line)
+        if target == self.nick:
+            conn.privmsg_user(requester, line)
+        else:
+            conn.privmsg_channel(target, line)
 
-    def flush(self, conn, requester, channel, args):
-        conn.privmsg_channel(channel, 'Flushing and rotating logfiles...')
+    def flush(self, conn, requester, target, args):
+        line = 'Flushing and rotating logfiles...'
+        if target == self.nick:
+            conn.privmsg_user(requester, line)
+        else:
+            conn.privmsg_channel(target, line)
 
-    def version(self, conn, requester, channel, args):
-        version_string = (
+    def version(self, conn, requester, target, args):
+        line = (
             "{app_data[version]}{app_data[phase]} by {app_data[overlord]}"
             .format(app_data=self.app_data))
-        conn.privmsg_channel(channel, version_string)
+        if target == self.nick:
+            conn.privmsg_user(requester, line)
+        else:
+            conn.privmsg_channel(target, line)
 
-    def kill(self, conn, requester, channel, args):
+    def kill(self, conn, requester, target, args):
         parameter = args[0] if args else None
         if self.app_args.kill and parameter == self.app_args.kill:
             self.should_die = True
             conn.privmsg_user(
                 requester, 'With urgency, my lord. Dying at your request.')
-            conn.privmsg_channel(channel, 'Goodbye!')
+            conn.privmsg_channel(self.channel, 'Goodbye!')
             conn.quit('killed by {0}'.format(requester))
 
     def version_query(self, conn, requester, channel, args):
@@ -111,7 +121,7 @@ class Bot(object):
             .format(app_data=self.app_data))
         conn.notice(requester, line)
 
-    def last(self, conn, requester, channel, args):
+    def last(self, conn, requester, target, args):
         parameter = args[0] if args else None
         if parameter:
             user = self.get_user(parameter)
@@ -121,7 +131,11 @@ class Bot(object):
                 line = user.message
         else:
             line = conn.last_message
-        conn.privmsg_channel(channel, line or "no last message")
+        line = line or "no last message"
+        if target == self.nick:
+            conn.privmsg_user(requester, line)
+        else:
+            conn.privmsg_channel(target, line)
 
     def format_message(self, requester, targets, content):
         now = Datetime.utcnow()
@@ -144,7 +158,7 @@ class Bot(object):
         self.users[nick] = user
         return user
 
-    def user(self, conn, requester, channel, args):
+    def user(self, conn, requester, target, args):
         parameter = args[0] if args else requester
         if parameter in self.users:
             user = self.users[requester]
@@ -155,7 +169,10 @@ class Bot(object):
                     .format(parameter, this_time, user_lastmsg, user.message))
         else:
             line = 'Information unavailable for user {0}'.format(parameter)
-        conn.privmsg_channel(channel, line)
+        if target == self.nick:
+            conn.privmsg_user(requester, line)
+        else:
+            conn.privmsg_channel(target, line)
 
     def dispatch(self, conn, prefix, targets, text):
         encoding = "ascii"  # TODO
@@ -166,12 +183,15 @@ class Bot(object):
 
         command, args = args[0], args[1:] if len(args) > 1 else []
         function = self.commands.get(command)
-        if function and self.channel in targets:
+        target = (
+            self.channel if self.channel in targets
+            else self.nick if self.nick in targets else None)
+        if function and target:
             self.logger.info("{0} is running {1} {2}"
                              .format(prefix, command, args))
             # TODO: ensure downstream commands understand args,
             # possibly prechew it here - unicode, lists...
-            function(conn, requester, self.channel, args)
+            function(conn, requester, target, args)
 
     def loop(self, conn):
         """
