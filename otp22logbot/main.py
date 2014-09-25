@@ -17,10 +17,12 @@ from otp22logbot.bot import Bot
 
 
 def make_parser():
-    parser = argparse.ArgumentParser()
+    parser = argparse.ArgumentParser(
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
     parser.add_argument(
         '-c', '--channel',
-        help='IRC channel to join. Default "otp22"',
+        help='IRC channel to join.',
         default='ircugm',
         type=str
     )
@@ -38,37 +40,37 @@ def make_parser():
     )
     parser.add_argument(
         '-n', '--nick',
-        help='IRC nick name. Default "otp22logbot"',
+        help='IRC nick name.',
         default='otp22logbot',
         type=str
     )
     parser.add_argument(
         '-o', '--output',
-        help='Output log filename. Default "otp22logbot.log"',
+        help='Output log filename.',
         default='otp22logbot.log',
         type=argparse.FileType('w')
     )
     parser.add_argument(
         '-p', '--port',
-        help='IRC port to use. Default 6667',
+        help='IRC port to use.',
         default=6667,
         type=int
     )
     parser.add_argument(
         '-r', '--real',
-        help='IRC real name. Default "otp22logbot"',
+        help='IRC real name.',
         default='otp22logbot',
         type=str
     )
     parser.add_argument(
         '-s', '--server',
-        help='IRC server to connect to. Default "irc.freenode.net"',
+        help='IRC server to connect to.',
         default='localhost',
         type=str
     )
     parser.add_argument(
         '-u', '--user',
-        help='IRC user name. Default "otp22logbot"',
+        help='IRC user name.',
         default='otp22logbot',
         type=str
     )
