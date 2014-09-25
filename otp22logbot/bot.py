@@ -171,6 +171,7 @@ class Bot(object):
         2. We may want the same instance of Bot to serve multiple sockets.
         """
         it = protocol.message_iterator(self.logger)
+        it.send(None)
         formatted = ''
         with conn:
             while not self.should_die:
