@@ -144,7 +144,7 @@ class Connection(object):
             self.logger.debug("cannot safely send overlong data: {0!r}"
                               .format(data[:520]))
             return
-        self.logger.debug('=SENDING=>[{0}]\n'.format(data))
+        self.logger.debug('=SENDING=>[{0}]'.format(data))
         self.sock.send(encoded + b'\r\n')
 
     def recv(self, size=1024):
@@ -235,7 +235,7 @@ class Bot(object):
         }
 
     def file_send(self, data):
-        self.logger.debug('=WRITING=>[{0}]\n'.format(data))
+        self.logger.debug('=WRITING=>[{0}]'.format(data))
         self.app_args.output.write(str(data))
 
     def startup(self):
@@ -387,7 +387,7 @@ class Bot(object):
     def shutdown(self):
         now = datetime.utcnow()
         timestamp = now.strftime(self.app_data['timeformat'])
-        end_message = 'shutdown at {0}\n'.format(timestamp)
+        end_message = 'shutdown at {0}'.format(timestamp)
         self.file_send(end_message)
         self.logger.info(end_message)
         self.app_args.output.close()
