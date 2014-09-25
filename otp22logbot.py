@@ -263,7 +263,6 @@ class Bot(object):
             conn.quit('killed by {0}'.format(requester))
 
     def version_query(self, conn, requester, channel, args):
-        # @task respond to CTCP VERSION
         line = (
             '\x01VERSION OTP22LogBot '
             'v{app_data[version]}{app_data[phase]}\x01'
@@ -316,13 +315,11 @@ class Bot(object):
 
         while not self.should_die:
             received = conn.recv(1024)
-            # @debug1
             self.logger.debug('received {0}'.format(received))
             if 'PING' in received:
                 conn.pong(received.split(None, 2)[1])
             if 'PRIVMSG' in received:
                 channel, requester, message_body = parse_message(received)
-                # @task handle regular messages to the channel
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
                     requester, channel, message[2])
@@ -353,18 +350,14 @@ class Bot(object):
 
 
 def parse_message(data):
-    # @debug1
     self.logger.debug('handling shit')
-    # @task handle input lengths. do not parse input of varied lengths.
     message = data.split(':', 3)
-    # @debug1
     self.logger.debug('len(msg)[{0}]\n'.format(len(message)))
     if len(message) != 3:
         continue
     else:
         message_header = message[1].strip().split(' ', 3)
         message_body = message[2].strip().split(' ')
-    # @debug2
     self.logger.debug("header {0}".format(message_header))
     self.logger.debug("body {0}".format(message_body))
     if message_header:
