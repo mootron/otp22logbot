@@ -82,6 +82,11 @@ def make_parser():
         type=str
     )
     parser.add_argument(
+        '--password',
+        action="store",
+        help="password to give to server in PASS command"
+    )
+    parser.add_argument(
         '--debug',
         action="store_true",
         help="print debug information"
