@@ -311,14 +311,16 @@ class Bot(object):
         2. We may want the same instance of Bot to serve multiple sockets.
         """
         formatted_message = ''
+        buffer = ''
 
         while not self.should_die:
             received = conn.recv(1024)
             self.logger.debug('received {0}'.format(received))
-            if 'PING' in received:
-                conn.pong(received.split(None, 2)[1])
-            if 'PRIVMSG' in received:
-                channel, requester, message_body = parse_message(received)
+            buffer = buffer + received
+            if message.startswith('PING'):
+                conn.pong(message.split(None, 2)[1])
+            elif message.startswith('PRIVMSG'):
+                channel, requester, message_body = parse_privmsg(message)
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
                     requester, channel, message_body[2])
@@ -348,17 +350,17 @@ class Bot(object):
         self.app_args.output.close()
 
 
-def parse_message(data):
+def parse_privmsg(data):
     message = data.split(':', 3)
     if len(message) != 3:
-        continue
+        return None
     else:
         message_header = message[1].strip().split(' ', 3)
-        message_body = message[2].strip().split(' ')
+        args = message[2].strip().split(' ')
     if message_header:
         channel = str(message_header[2])
         requester = str(message_header[0].split('!', 1)[0])
-    return channel, requester, message_body
+    return channel, requester, args
 
 
 def configure_logging(app_args):
