@@ -147,7 +147,7 @@ class Connection(object):
         self.send('USER {0} {1} default :{2}'.format(username, server, real))
 
     def pass_(self, password):
-        self.send('PASS {0}\r\n'.format(password))
+        self.send('PASS {0}'.format(password))
 
     def join(self, channel):
         assert channel.startswith('#'), channel
@@ -223,9 +223,8 @@ class Bot(object):
         return Connection(sock, self.logger)
 
     def handshake(self, conn):
-        # @todo accept a server password
-        # if app_args.password != False:
-        #  conn.pass_(app_args.password)
+        if self.app_args.password:
+            conn.pass_(self.app_args.password)
         conn.nick(self.app_args.nick)
         conn.user(self.app_args.user, self.app_args.server, self.app_args.real)
         conn.join('#' + self.app_args.channel)
