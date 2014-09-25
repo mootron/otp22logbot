@@ -310,7 +310,6 @@ class Bot(object):
         1. We may want a Bot instance to loop on an existing socket.
         2. We may want the same instance of Bot to serve multiple sockets.
         """
-        message = ''
         formatted_message = ''
 
         while not self.should_die:
