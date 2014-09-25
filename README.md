@@ -6,6 +6,7 @@ It also provides a few simple log review and user statistic commands.
 
         usage: otp22logbot.py [-h] [-c [CHANNEL]] [-i [INIT]] [-n [NICK]]
           [-o [OUTPUT]] [-p [PORT]] [-r [REAL]] [-s [SERVER]] [-u [USER]]
+          [--debug]
 
         optional arguments:
           -h, --help                          show this help message and exit
@@ -17,3 +18,4 @@ It also provides a few simple log review and user statistic commands.
           -r [REAL], --real [REAL]            IRC real name. Default "otp22logbot"
           -s [SERVER], --server [SERVER]      IRC server to connect to. Default "irc.freenode.net"
           -u [USER], --user [USER]            IRC user name. Default "otp22logbot"
+          --debug                             print debug information
