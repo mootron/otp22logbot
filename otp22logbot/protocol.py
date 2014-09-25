@@ -59,7 +59,7 @@ def parse_message(data):
         prefix = data[1:pos]
         data = data[pos + 1:]
     else:
-        prefix = ''
+        prefix = b''
 
     # Now find the split between IRC command and params, if any.
     # Params can have spaces in it.
@@ -100,7 +100,7 @@ def message_iterator(logger):
     """Handle fragments and call parse_messages for consumers.
     """
     messages = []
-    old_data = ''
+    old_data = b''
     while True:
         new_data = yield messages
         if new_data:
