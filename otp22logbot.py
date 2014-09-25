@@ -321,10 +321,10 @@ class Bot(object):
                 channel, requester, message_body = parse_message(received)
                 conn.last_message = formatted_message
                 formatted_message = self.format_message(
-                    requester, channel, message[2])
+                    requester, channel, message_body[2])
 
                 user = self.get_user(requester)
-                user.update(channel, message[2])
+                user.update(channel, message_body[2])
 
                 self.file_send(formatted_message)
                 parsed = self.parse_command(message_body)
