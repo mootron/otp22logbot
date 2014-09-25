@@ -171,13 +171,12 @@ class Connection(object):
         # RFC 1459 4.1.1, RFC 2812 3.1.1 - PASS before NICK, USER
         self.send('PASS {0}'.format(password))
 
-    def join(self, channel, key=None):
+    def join(self, channels, keys=None):
+        keys = (" " + ",".join(keys)) if keys else ''
         # RFC 1459 4.2.1, RFC 2812 3.2.1
-        # TODO: join multiple channels at startup using one message
-        # if it doesn't exceed overall length limit?
-        # comma separate channels list, then space, then comma'd keys
-        assert channel.startswith('#'), channel
-        self.send('JOIN {0}{1}'.format(channel, ' ' + key if key else ''))
+        for channel in channels:
+            assert channel.startswith('#'), channel
+            self.send('JOIN {0}{1}'.format(channel, keys))
 
     def _privmsg_any(self, targets, text):
         """Just put together and send a PRIVMSG message.
