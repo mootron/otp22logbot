@@ -38,7 +38,7 @@ class Connection(object):
                               .format(data[:520]))
             return
         self.logger.debug('=SENDING=>[{0}]'.format(data))
-        self.sock.send(encoded + b'\r\n')
+        self.sock.sendall(encoded + b'\r\n')
 
     def recv(self, size=1024):
         # Totally ignore encoding. We can't guarantee anything about
