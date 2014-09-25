@@ -144,9 +144,9 @@ class Connection(object):
         assert username
         assert server
         assert real
-        # RFC 1459 4.1.3 realname parameter must be the last parameter, because
-        # it may contain space characters and must be prefixed with a colon
-        # (':') to make sure this is recognised as such.
+        # RFC 1459 4.1.3: realname parameter [...] may contain space
+        # characters and must be prefixed with a colon (':') to make
+        # sure this is recognised as such.
         self.send('USER {0} {1} default :{2}'.format(username, server, real))
 
     def pass_(self, password):
