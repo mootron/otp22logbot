@@ -295,11 +295,11 @@ class Bot(object):
         parameter = args[0] if args else None
         if parameter in self.users:
             user = self.users[requester]
-            this_time = user.seen.strftime(self.app_data['timeformat_extended'])
-            user_lastmsg = user.time.strftime(self.app_data['timeformat_extended'])
+            timeformat = self.appdata['timeformat_extended']
+            this_time = user.seen.strftime(timeformat)
+            user_lastmsg = user.time.strftime(timeformat)
             line = ('User {0} (last seen {1}), (last message {2} -- {3})'
-                    .format(parameter, this_time, user_lastmsg,
-                            user.message))
+                    .format(parameter, this_time, user_lastmsg, user.message))
         else:
             line = 'Information unavailable for user {0}'.format(parameter)
         conn.privmsg(channel, line)
