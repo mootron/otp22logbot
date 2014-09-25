@@ -68,7 +68,7 @@ class Bot(object):
         if self.app_args.password:
             conn.password(self.app_args.password)
         conn.nick(self.app_args.nick)
-        conn.user(self.app_args.user, self.app_args.server, self.app_args.real)
+        conn.user(self.app_args.user, self.app_args.real)
         conn.join(['#' + self.app_args.channel])
         conn.privmsg_user(
             self.app_data['overlord'], 'Greetings, overlord. I am for you.')
