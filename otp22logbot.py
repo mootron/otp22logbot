@@ -154,39 +154,59 @@ class Connection(object):
         buf = self.sock.recv(size)
         return buf
 
-    def nick(self, name):
-        assert name
-        self.send('NICK {0}'.format(name))
+    def nick(self, nickname):
+        assert nickname
+        assert " " not in nickname
+        # RFC 1459 4.1.2, RFC 2812 3.1.2
+        self.send('NICK {0}'.format(nickname))
 
-    def user(self, username, server, real):
+    def user(self, username, realname):
+        #, mode=0, hostname=None, servername="default"):
+        # assert hostname
         assert username
-        assert server
-        assert real
-        # RFC 1459 4.1.3: realname parameter [...] may contain space
-        # characters and must be prefixed with a colon (':') to make
-        # sure this is recognised as such.
-        self.send('USER {0} {1} default :{2}'.format(username, server, real))
+        assert realname
+        # TODO: how to autodetect format to use?
+        # RFC 1459 4.1.3 "username hostname servername :real name"
+        # RFC 2812 3.1.3 "user mode unused :realname"
+        # mode is numeric, e.g. 0
+        # unused is conventionally *
+        # self.send('USER {0} {1} {2} :{3}'.format(username, hostname, servername, realname))
+        self.send('USER {0} 0 * :{1}'.format(username, realname))
 
-    def pass_(self, password):
+    def password(self, password):
+        # RFC 1459 4.1.1, RFC 2812 3.1.1 - PASS before NICK, USER
         self.send('PASS {0}'.format(password))
 
-    def join(self, channel):
+    def join(self, channel, key=None):
+        # RFC 1459 4.2.1, RFC 2812 3.2.1
+        # TODO: join multiple channels at startup using one message
+        # if it doesn't exceed overall length limit?
+        # comma separate channels list, then space, then comma'd keys
         assert channel.startswith('#'), channel
-        self.send('JOIN {0}'.format(channel))
+        self.send('JOIN {0}{1}'.format(channel, ' ' + key if key else ''))
 
-    def privmsg(self, channel, line):
-        assert channel.startswith('#'), channel
-        assert line
-        self.send('PRIVMSG {0} :{1}'.format(channel, line))
+    def privmsg(self, target, text):
+        assert target
+        assert text
+        # RFC 1459 4.4.1, RFC 2812 3.3.1
+        # TODO: somehow structure whether we mean channel or user or multiple
+        # TODO: multiple receivers separated by commas, within length limit
+        self.send('PRIVMSG {0} :{1}'.format(target, text))
 
-    def pong(self, line):
-        self.send('PONG {0}\n'.format(line))
+    def notice(self, target, text):
+        # RFC 1459 4.4.2, RFC 2812 3.3.2
+        assert target
+        assert text
+        self.send('NOTICE {0} :{1}'.format(target, text))
 
-    def notice(self, name, line):
-        self.send('NOTICE {0} :{1}'.format(name, line))
+    def pong(self, server):
+        # RFC 1459 4.6.3, RFC 2812 3.7.3
+        # - server is MY server.
+        self.send('PONG {0}'.format(server))
 
-    def quit(self, line):
-        self.send('QUIT :{0}'.format(line))
+    def quit(self, quit_message):
+        # RFC 1459 4.1.6, RFC 2812 3.1.7
+        self.send('QUIT :{0}'.format(quit_message))
 
 
 class Bot(object):
@@ -244,8 +264,9 @@ class Bot(object):
         return Connection(sock, self.logger.getChild("connection"))
 
     def handshake(self, conn):
+        # RFC 1459 4.1.1, RFC 2812 3.1.1 - PASS before NICK, USER
         if self.app_args.password:
-            conn.pass_(self.app_args.password)
+            conn.password(self.app_args.password)
         conn.nick(self.app_args.nick)
         conn.user(self.app_args.user, self.app_args.server, self.app_args.real)
         conn.join('#' + self.app_args.channel)
