@@ -153,7 +153,11 @@ class Bot(object):
         conn.privmsg_channel(channel, line)
 
     def dispatch(self, conn, prefix, targets, text):
-        args = text.split(b" ", 1)
+        encoding = "ascii"  # TODO
+        requester = prefix.split(b"!", 1)[0].decode(encoding)
+        targets = [target.decode(encoding) for target in targets]
+        args = [arg.decode(encoding) for arg in text.split(b" ", 1)]
+
         command, args = args[0], args[1:] if len(args) > 1 else []
         function = self.commands.get(command)
         if function and self.channel in targets:
@@ -161,7 +165,6 @@ class Bot(object):
                              .format(prefix, command, args))
             # TODO: ensure downstream commands understand args,
             # possibly prechew it here - unicode, lists...
-            requester = prefix.split(b"!", 1)[0]
             function(conn, requester, self.channel, args)
 
     def loop(self, conn):
